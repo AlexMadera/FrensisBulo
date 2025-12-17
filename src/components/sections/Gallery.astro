@@ -608,12 +608,12 @@ const loopImages = useCarousel
     border-radius: 2rem;
     background: transparent;
     color: var(--text-color);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--tracking-wide);
   }
 
   .filter-btn:hover,
@@ -815,7 +815,8 @@ const loopImages = useCarousel
 
   .lightbox-caption {
     color: var(--white);
-    font-size: 1rem;
+    font-size: var(--text-base);
+    font-weight: var(--font-normal);
     margin-top: 1rem;
     text-align: center;
     opacity: 0.8;
@@ -905,7 +906,7 @@ const loopImages = useCarousel
   @media (max-width: 480px) {
     .filter-btn {
       padding: 0.5rem 1rem;
-      font-size: 0.8rem;
+      font-size: var(--text-xs);
     }
 
     .gallery-item {

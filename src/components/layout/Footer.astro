@@ -93,10 +93,11 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   }
 
   .brand-name {
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: var(--font-semibold);
+    font-size: var(--text-base);
     color: var(--text-color);
     white-space: nowrap;
+    letter-spacing: var(--tracking-tight);
   }
 
   .brand-divider {
@@ -106,8 +107,9 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   }
 
   .brand-location {
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--text-muted);
+    font-weight: var(--font-normal);
   }
 
   .footer-nav {
@@ -117,11 +119,13 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   }
 
   .nav-link {
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--text-muted);
     text-decoration: none;
     transition: color 0.3s ease;
     white-space: nowrap;
+    font-weight: var(--font-normal);
+    letter-spacing: var(--tracking-normal);
   }
 
   .nav-link:hover {
@@ -166,10 +170,11 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   }
 
   .copyright {
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     color: var(--text-muted);
     margin: 0;
     opacity: 0.7;
+    font-weight: var(--font-normal);
   }
 
   @media (max-width: 900px) {
@@ -205,11 +210,11 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
     }
 
     .brand-name {
-      font-size: 0.9rem;
+      font-size: var(--text-sm);
     }
 
     .nav-link {
-      font-size: 0.8rem;
+      font-size: var(--text-xs);
     }
 
     .social-link {
@@ -220,6 +225,14 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
     .social-link svg {
       width: 16px;
       height: 16px;
+    }
+
+    .brand-location {
+      font-size: var(--text-xs);
+    }
+
+    .copyright {
+      font-size: var(--text-xs);
     }
   }
 </style>

@@ -31,21 +31,21 @@ const { title, subtitle, centered = true, light = false } = Astro.props;
 
   .subtitle-tag {
     display: inline-block;
-    font-size: 0.875rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: var(--tracking-widest);
     color: var(--primary-color);
     margin-bottom: 1rem;
-    font-weight: 600;
+    font-weight: var(--font-semibold);
   }
 
   .section-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-size: clamp(var(--text-3xl), 5vw, var(--text-5xl));
     color: var(--white);
     margin: 0;
-    line-height: 1.1;
-    font-weight: 700;
-    text-transform: uppercase;
+    line-height: var(--leading-tight);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-tight);
   }
 
   .light .section-title {
@@ -64,5 +64,19 @@ const { title, subtitle, centered = true, light = false } = Astro.props;
 
   .section-header:hover .text-wrapper {
     background-position: 0 0;
+  }
+
+  @media (max-width: 768px) {
+    .section-header {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: clamp(var(--text-2xl), 6vw, var(--text-4xl));
+    }
+
+    .subtitle-tag {
+      font-size: 0.65rem;
+    }
   }
 </style>

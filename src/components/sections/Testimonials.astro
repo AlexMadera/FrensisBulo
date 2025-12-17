@@ -508,9 +508,10 @@ function renderStars(rating: number): string {
   .quote p {
     font-style: italic;
     color: var(--text-color);
-    line-height: 1.8;
-    font-size: 0.95rem;
+    line-height: var(--leading-loose);
+    font-size: var(--text-base);
     margin: 0;
+    font-weight: var(--font-normal);
   }
 
   .author {
@@ -524,15 +525,16 @@ function renderStars(rating: number): string {
 
   .stars {
     color: #f1c40f;
-    font-size: 1.1rem;
-    letter-spacing: 2px;
+    font-size: var(--text-lg);
+    letter-spacing: 3px;
   }
 
   .name {
     color: var(--primary-color);
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
     font-style: normal;
+    letter-spacing: var(--tracking-wide);
   }
 
   .carousel-indicators {
@@ -601,7 +603,7 @@ function renderStars(rating: number): string {
     }
 
     .quote p {
-      font-size: 0.9rem;
+      font-size: var(--text-sm);
     }
   }
 
