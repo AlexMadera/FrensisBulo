@@ -1,0 +1,729 @@
+---
+import type { SiteContent, Language } from '../../i18n/content';
+import { languages } from '../../i18n/content';
+
+interface Props {
+  data: SiteContent['nav'];
+  currentLang: Language;
+}
+
+const { data, currentLang } = Astro.props;
+
+const flags: Record<string, string> = {
+  en: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="18" height="12"><clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#s)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>`,
+  nl: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 6" width="18" height="12"><rect width="9" height="6" fill="#21468b"/><rect width="9" height="4" fill="#fff"/><rect width="9" height="2" fill="#ae1c28"/></svg>`,
+  pa: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" width="18" height="12"><rect width="3" height="2" fill="#002b7f"/><rect width="3" height="0.25" y="1.25" fill="#f9e814"/></svg>`,
+  es: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 500" width="18" height="12"><rect width="750" height="500" fill="#c60b1e"/><rect width="750" height="250" y="125" fill="#ffc400"/></svg>`,
+};
+---
+
+<header id="header">
+    <div class="header-container">
+    <a href={`/${currentLang}/`} class="logo-link">
+      <img src="/frensis-bulo-logo-removebg-preview.png" alt="Frensis Bulo" class="logo" />
+    </a>
+    
+    <nav class="nav-desktop" aria-label="Main navigation">
+      <ul class="nav-links">
+        {data.links.map((link, index) => (
+          <li class="nav-item" data-index={index}>
+            <a href={link.href} class="nav-link" data-scroll-to={link.href}>
+              <span class="link-text">{link.text}</span>
+              <span class="link-indicator"></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <div class="lang-picker">
+        <button class="lang-btn" aria-label="Select language" aria-expanded="false" aria-haspopup="listbox">
+          <span class="flag" set:html={flags[currentLang]} />
+          <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="lang-dropdown" role="listbox">
+          {Object.entries(languages).map(([lang, label]) => (
+            <a href={`/${lang}/`} class={`lang-option ${lang === currentLang ? 'active' : ''}`} role="option" aria-selected={lang === currentLang}>
+              <span class="flag" set:html={flags[lang]} />
+              <span class="lang-code">{lang.toUpperCase()}</span>
+              {lang === currentLang && (
+                <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              )}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <button class="mobile-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </button>
+    </div>
+    
+    <nav class="nav-mobile" aria-label="Mobile navigation" aria-hidden="true">
+      <ul class="nav-links">
+        {data.links.map((link, index) => (
+          <li class="nav-item" data-index={index}>
+            <a href={link.href} class="nav-link" data-scroll-to={link.href}>
+              <span class="link-text">{link.text}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="mobile-lang-picker">
+        {Object.entries(languages).map(([lang]) => (
+          <a href={`/${lang}/`} class={`mobile-lang-option ${lang === currentLang ? 'active' : ''}`}>
+            <span class="flag" set:html={flags[lang]} />
+          </a>
+        ))}
+      </div>
+    </nav>
+  </div>
+</header>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+
+  gsap.registerPlugin(ScrollToPlugin);
+
+  function initHeader() {
+    const header = document.getElementById('header');
+    const mobileToggle = document.querySelector('.mobile-toggle') as HTMLButtonElement | null;
+    const navMobile = document.querySelector('.nav-mobile') as HTMLElement | null;
+    const navLinks = document.querySelectorAll('.nav-desktop .nav-link');
+    const navItems = document.querySelectorAll('.nav-desktop .nav-item');
+    const langBtn = document.querySelector('.lang-btn') as HTMLButtonElement | null;
+    const langDropdown = document.querySelector('.lang-dropdown') as HTMLElement | null;
+    
+    gsap.fromTo('#header .logo',
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+    );
+
+    gsap.fromTo(navItems, 
+      { opacity: 0, y: -15 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', delay: 0.2 }
+    );
+
+    gsap.fromTo('#header .header-actions',
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.4 }
+    );
+
+    navLinks.forEach((link) => {
+      const indicator = link.querySelector('.link-indicator');
+      const text = link.querySelector('.link-text');
+      
+      link.addEventListener('mouseenter', () => {
+        gsap.to(indicator, { scaleX: 1, duration: 0.25, ease: 'power2.out' });
+        gsap.to(text, { y: -2, color: 'var(--primary-color)', duration: 0.2, ease: 'power2.out' });
+      });
+      
+      link.addEventListener('mouseleave', () => {
+        gsap.to(indicator, { scaleX: 0, duration: 0.25, ease: 'power2.in' });
+        gsap.to(text, { y: 0, color: 'var(--white)', duration: 0.2, ease: 'power2.in' });
+      });
+    });
+
+    const smoothScrollTo = (targetId: string) => {
+      const target = document.querySelector(targetId);
+      if (target) {
+        const headerHeight = header?.offsetHeight || 80;
+        const targetPosition = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+        
+        gsap.to(window, {
+          scrollTo: { y: targetPosition, autoKill: true },
+          duration: 0.8,
+          ease: 'power2.inOut'
+        });
+      }
+    };
+
+    document.querySelectorAll('.nav-desktop [data-scroll-to]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('data-scroll-to');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          smoothScrollTo(href);
+        }
+      });
+    });
+
+    let lastScrollY = 0;
+    let ticking = false;
+    
+    const handleScroll = () => {
+      lastScrollY = window.scrollY;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (lastScrollY > 50) {
+            header?.classList.add('scrolled');
+          } else {
+            header?.classList.remove('scrolled');
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const lockScroll = () => {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+      document.body.dataset.scrollY = String(scrollY);
+    };
+
+    const unlockScroll = () => {
+      const scrollY = document.body.dataset.scrollY || '0';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY, 10));
+    };
+
+    const openMobileMenu = () => {
+      if (!navMobile || !mobileToggle) return;
+      navMobile.classList.add('active');
+      mobileToggle.classList.add('active');
+      mobileToggle.setAttribute('aria-expanded', 'true');
+      navMobile.setAttribute('aria-hidden', 'false');
+      lockScroll();
+      
+      const tl = gsap.timeline();
+      tl.fromTo('.nav-mobile .nav-item',
+        { opacity: 0, x: 30 },
+        { opacity: 1, x: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out' }
+      ).fromTo('.mobile-lang-picker',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out' },
+        '-=0.2'
+      );
+    };
+
+    const closeMobileMenu = () => {
+      if (!navMobile || !mobileToggle) return;
+      
+      gsap.to('.nav-mobile .nav-item', {
+        opacity: 0,
+        x: -20,
+        duration: 0.2,
+        stagger: 0.03,
+        ease: 'power2.in'
+      });
+      
+      gsap.to('.mobile-lang-picker', {
+        opacity: 0,
+        y: 10,
+        duration: 0.2,
+        ease: 'power2.in'
+      });
+
+      setTimeout(() => {
+        navMobile.classList.remove('active');
+        mobileToggle.classList.remove('active');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        navMobile.setAttribute('aria-hidden', 'true');
+        unlockScroll();
+      }, 250);
+    };
+
+    mobileToggle?.addEventListener('click', () => {
+      const isActive = navMobile?.classList.contains('active');
+      if (!isActive) {
+        openMobileMenu();
+      } else {
+        closeMobileMenu();
+      }
+    });
+
+    document.querySelectorAll('.nav-mobile .nav-links a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('data-scroll-to');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            closeMobileMenu();
+            setTimeout(() => {
+              smoothScrollTo(href);
+            }, 300);
+          }
+        } else {
+          closeMobileMenu();
+        }
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMobile?.classList.contains('active')) {
+        closeMobileMenu();
+      }
+    });
+
+    langBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isExpanded = langBtn.getAttribute('aria-expanded') === 'true';
+      langBtn.setAttribute('aria-expanded', String(!isExpanded));
+      langDropdown?.classList.toggle('open');
+      
+      if (!isExpanded) {
+        gsap.fromTo('.lang-option',
+          { opacity: 0, y: -5 },
+          { opacity: 1, y: 0, duration: 0.2, stagger: 0.03, ease: 'power2.out' }
+        );
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as Node;
+      if (!langBtn?.contains(target) && !langDropdown?.contains(target)) {
+        langBtn?.setAttribute('aria-expanded', 'false');
+        langDropdown?.classList.remove('open');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initHeader);
+  document.addEventListener('astro:page-load', initHeader);
+</script>
+
+<style>
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 0.75rem 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: transparent;
+  }
+
+  header.scrolled {
+    padding: 0.5rem 0;
+    background: rgba(14, 14, 14, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    width: 100%;
+    padding: 0 3rem;
+  }
+
+  .logo-link {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    z-index: 1001;
+  }
+
+  .logo {
+    height: 85px;
+    width: auto;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  header.scrolled .logo {
+    height: 60px;
+  }
+
+  .logo:hover {
+    transform: scale(1.03);
+  }
+
+  .nav-desktop {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-desktop .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--white);
+    font-weight: 400;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 0.875rem;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .link-text {
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+  }
+
+  .link-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    transform-origin: center;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 1001;
+  }
+
+  .lang-picker {
+    position: relative;
+  }
+
+  .lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s ease;
+  }
+
+  .lang-btn:hover,
+  .lang-btn:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(120, 203, 205, 0.5);
+    outline: none;
+  }
+
+  .lang-btn .flag {
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .chevron {
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .lang-btn[aria-expanded="true"] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .lang-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: rgba(24, 24, 24, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    min-width: 100px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.95);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    z-index: 1002;
+  }
+
+  .lang-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .lang-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+  }
+
+  .lang-option.active {
+    color: var(--primary-color);
+    background: rgba(120, 203, 205, 0.08);
+  }
+
+  .lang-option .flag {
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .lang-code {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .check-icon {
+    margin-left: auto;
+    color: var(--primary-color);
+  }
+
+  .mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1001;
+    padding: 0.5rem;
+  }
+
+  .hamburger {
+    width: 22px;
+    height: 14px;
+    position: relative;
+  }
+
+  .hamburger span {
+    display: block;
+    position: absolute;
+    height: 2px;
+    width: 100%;
+    background: var(--white);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hamburger span:nth-child(1) { top: 0; width: 100%; }
+  .hamburger span:nth-child(2) { top: 6px; width: 65%; }
+  .hamburger span:nth-child(3) { top: 12px; width: 80%; }
+
+  .mobile-toggle.active .hamburger span:nth-child(1) {
+    transform: rotate(45deg);
+    top: 6px;
+    width: 100%;
+  }
+
+  .mobile-toggle.active .hamburger span:nth-child(2) {
+    opacity: 0;
+    width: 0;
+  }
+
+  .mobile-toggle.active .hamburger span:nth-child(3) {
+    transform: rotate(-45deg);
+    top: 6px;
+    width: 100%;
+  }
+
+  .nav-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 999;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .nav-mobile.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-mobile .nav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-mobile .nav-link {
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    color: var(--white);
+    position: relative;
+  }
+
+  .nav-mobile .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+  }
+
+  .nav-mobile .nav-link:hover::after {
+    width: 50%;
+  }
+
+  .mobile-lang-picker {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+  }
+
+  .mobile-lang-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 32px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+  }
+
+  .mobile-lang-option:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .mobile-lang-option.active {
+    opacity: 1;
+    background: rgba(120, 203, 205, 0.15);
+    box-shadow: 0 0 0 1px rgba(120, 203, 205, 0.3);
+  }
+
+  .mobile-lang-option .flag {
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 1024px) {
+    .nav-desktop {
+      position: static;
+      transform: none;
+    }
+
+    .header-container {
+      justify-content: flex-start;
+    }
+
+    .nav-desktop {
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+
+    .nav-link {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.7rem;
+    }
+
+    .header-actions {
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nav-desktop {
+      display: none;
+    }
+
+    .mobile-toggle {
+      display: block;
+    }
+
+    .header-container {
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    .lang-picker {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .logo {
+      height: 34px;
+    }
+
+    header.scrolled .logo {
+      height: 30px;
+    }
+
+    .nav-mobile .nav-link {
+      font-size: 1.15rem;
+    }
+
+    .mobile-lang-picker {
+      gap: 0.4rem;
+      padding: 0.4rem;
+    }
+
+    .mobile-lang-option {
+      width: 36px;
+      height: 28px;
+    }
+  }
+</style>

@@ -1,0 +1,560 @@
+---
+import type { SiteContent } from '../../i18n/content';
+import Container from '../ui/Container.astro';
+import SectionHeader from '../ui/SectionHeader.astro';
+
+interface Props {
+  data: SiteContent['testimonials'];
+}
+
+const { data } = Astro.props;
+
+function renderStars(rating: number): string {
+  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
+---
+
+<section id="testimonials" class="testimonials" aria-label="Customer testimonials">
+  <div class="testimonials-bg">
+    <div class="gradient-overlay"></div>
+    <div class="noise-overlay"></div>
+  </div>
+  
+  <Container class="testimonials-container">
+    <SectionHeader title={data.title} subtitle={data.subtitle} />
+    
+    <div class="carousel-wrapper">
+      <button 
+        class="carousel-nav carousel-prev" 
+        aria-label="Previous testimonials"
+        type="button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </button>
+      
+      <div class="carousel-viewport" role="region" aria-label="Testimonials carousel">
+        <div class="carousel-track" id="testimonials-track">
+          {data.items.map((item, index) => (
+            <article 
+              class="testimonial-card" 
+              data-index={index}
+              aria-label={`Testimonial from ${item.author}`}
+            >
+              <div class="card-inner">
+                <div class="quote-icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.192 15.757c0-.88-.23-1.618-.69-2.217-.326-.412-.768-.683-1.327-.812-.55-.128-1.07-.137-1.54-.028-.16-.95.1-1.956.76-3.022.66-1.065 1.515-1.867 2.558-2.403L9.373 5c-.8.396-1.56.898-2.26 1.505-.71.607-1.34 1.305-1.9 2.094s-.98 1.68-1.25 2.69-.346 2.04-.217 3.1c.168 1.4.62 2.52 1.356 3.35.735.84 1.652 1.26 2.748 1.26.965 0 1.766-.29 2.4-.878.628-.576.94-1.365.94-2.368l.002.003zm9.124 0c0-.88-.23-1.618-.69-2.217-.326-.42-.77-.692-1.327-.817-.56-.124-1.074-.13-1.54-.022-.16-.94.09-1.95.75-3.02.66-1.06 1.514-1.86 2.557-2.4L18.49 5c-.8.396-1.555.898-2.26 1.505-.708.607-1.34 1.305-1.894 2.094-.556.79-.97 1.68-1.24 2.69-.273 1-.345 2.04-.217 3.1.168 1.4.62 2.52 1.356 3.35.735.84 1.652 1.26 2.748 1.26.965 0 1.766-.29 2.4-.878.628-.576.94-1.365.94-2.368l-.007.003z"/>
+                  </svg>
+                </div>
+                
+                <blockquote class="quote">
+                  <p>{item.text}</p>
+                </blockquote>
+                
+                <footer class="author">
+                  <div class="stars" aria-label={`Rating: ${item.rating} out of 5 stars`}>
+                    {renderStars(item.rating)}
+                  </div>
+                  <cite class="name">{item.author}</cite>
+                </footer>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+      
+      <button 
+        class="carousel-nav carousel-next" 
+        aria-label="Next testimonials"
+        type="button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="carousel-indicators" role="tablist" aria-label="Testimonial pages">
+      {data.items.map((_, index) => (
+        <button 
+          class:list={['indicator', { active: index === 0 }]}
+          role="tab"
+          aria-selected={index === 0 ? 'true' : 'false'}
+          aria-label={`Go to testimonial ${index + 1}`}
+          data-index={index}
+          type="button"
+        />
+      ))}
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  class TestimonialsCarousel {
+    private track: HTMLElement;
+    private cards: HTMLElement[];
+    private prevBtn: HTMLButtonElement;
+    private nextBtn: HTMLButtonElement;
+    private indicators: NodeListOf<HTMLButtonElement>;
+    
+    private currentIndex = 0;
+    private visibleCount = 3;
+    private cardWidth = 0;
+    private gap = 24;
+    private autoplayInterval: ReturnType<typeof setInterval> | null = null;
+    private autoplayDelay = 5000;
+    private isHovering = false;
+
+    constructor() {
+      const track = document.getElementById('testimonials-track');
+      if (!track) return;
+      
+      this.track = track;
+      this.cards = Array.from(this.track.querySelectorAll('.testimonial-card'));
+      this.prevBtn = document.querySelector('.carousel-prev') as HTMLButtonElement;
+      this.nextBtn = document.querySelector('.carousel-next') as HTMLButtonElement;
+      this.indicators = document.querySelectorAll('.indicator');
+
+      if (this.cards.length === 0) return;
+      
+      this.init();
+    }
+
+    private init(): void {
+      this.calculateLayout();
+      this.setupNavigation();
+      this.setupIndicators();
+      this.setupHoverPause();
+      this.setupTouchSwipe();
+      this.updateActiveStates();
+      this.animateEntrance();
+      this.startAutoplay();
+      
+      window.addEventListener('resize', () => {
+        this.calculateLayout();
+        this.goToSlide(this.currentIndex, false);
+      });
+    }
+
+    private calculateLayout(): void {
+      const viewportWidth = window.innerWidth;
+      
+      if (viewportWidth < 640) {
+        this.visibleCount = 1;
+        this.gap = 16;
+      } else if (viewportWidth < 1024) {
+        this.visibleCount = 2;
+        this.gap = 20;
+      } else {
+        this.visibleCount = 3;
+        this.gap = 24;
+      }
+
+      const viewport = this.track.parentElement;
+      if (!viewport) return;
+      
+      const viewportWidthPx = viewport.clientWidth;
+      this.cardWidth = (viewportWidthPx - (this.gap * (this.visibleCount - 1))) / this.visibleCount;
+      
+      this.cards.forEach(card => {
+        card.style.width = `${this.cardWidth}px`;
+        card.style.flexShrink = '0';
+      });
+      
+      this.track.style.gap = `${this.gap}px`;
+    }
+
+    private getMaxIndex(): number {
+      return Math.max(0, this.cards.length - this.visibleCount);
+    }
+
+    private setupNavigation(): void {
+      this.prevBtn?.addEventListener('click', () => this.prev());
+      this.nextBtn?.addEventListener('click', () => this.next());
+    }
+
+    private setupIndicators(): void {
+      this.indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => this.goToSlide(index));
+      });
+    }
+
+    private setupHoverPause(): void {
+      const wrapper = document.querySelector('.carousel-wrapper');
+      wrapper?.addEventListener('mouseenter', () => {
+        this.isHovering = true;
+        this.stopAutoplay();
+      });
+      wrapper?.addEventListener('mouseleave', () => {
+        this.isHovering = false;
+        this.startAutoplay();
+      });
+    }
+
+    private setupTouchSwipe(): void {
+      let startX = 0;
+      let isDragging = false;
+
+      this.track.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        this.stopAutoplay();
+      }, { passive: true });
+
+      this.track.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        const endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) {
+            this.next();
+          } else {
+            this.prev();
+          }
+        }
+        
+        isDragging = false;
+        if (!this.isHovering) this.startAutoplay();
+      }, { passive: true });
+    }
+
+    private prev(): void {
+      const newIndex = this.currentIndex - 1;
+      if (newIndex < 0) {
+        this.goToSlide(this.getMaxIndex());
+      } else {
+        this.goToSlide(newIndex);
+      }
+    }
+
+    private next(): void {
+      const newIndex = this.currentIndex + 1;
+      if (newIndex > this.getMaxIndex()) {
+        this.goToSlide(0);
+      } else {
+        this.goToSlide(newIndex);
+      }
+    }
+
+    private goToSlide(index: number, animate = true): void {
+      this.currentIndex = Math.max(0, Math.min(index, this.getMaxIndex()));
+      const offset = this.currentIndex * (this.cardWidth + this.gap);
+      
+      if (animate) {
+        gsap.to(this.track, {
+          x: -offset,
+          duration: 0.6,
+          ease: 'power3.out'
+        });
+      } else {
+        gsap.set(this.track, { x: -offset });
+      }
+      
+      this.updateActiveStates();
+    }
+
+    private updateActiveStates(): void {
+      this.cards.forEach((card, index) => {
+        const isVisible = index >= this.currentIndex && index < this.currentIndex + this.visibleCount;
+        card.classList.toggle('active', isVisible);
+      });
+      
+      this.indicators.forEach((indicator, index) => {
+        const isActive = index === this.currentIndex;
+        indicator.classList.toggle('active', isActive);
+        indicator.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      if (this.prevBtn) {
+        this.prevBtn.disabled = false;
+      }
+      if (this.nextBtn) {
+        this.nextBtn.disabled = false;
+      }
+    }
+
+    private startAutoplay(): void {
+      if (this.autoplayInterval) return;
+      
+      this.autoplayInterval = setInterval(() => {
+        this.next();
+      }, this.autoplayDelay);
+    }
+
+    private stopAutoplay(): void {
+      if (this.autoplayInterval) {
+        clearInterval(this.autoplayInterval);
+        this.autoplayInterval = null;
+      }
+    }
+
+    private animateEntrance(): void {
+      const tl = gsap.timeline({
+        defaults: { ease: 'power4.out' },
+        scrollTrigger: {
+          trigger: '.testimonials',
+          start: 'top 75%',
+        }
+      });
+
+      tl.fromTo('.testimonial-card',
+        { opacity: 0, y: 50, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.1 }
+      );
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    new TestimonialsCarousel();
+  });
+</script>
+
+<style>
+  .testimonials {
+    position: relative;
+    padding: 6rem 0;
+    overflow: hidden;
+  }
+
+  .testimonials-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(120, 203, 205, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(120, 203, 205, 0.08) 0%, transparent 50%),
+      linear-gradient(180deg, var(--subtle-bg) 0%, var(--bg-color) 100%);
+  }
+
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .testimonials-container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .carousel-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+
+  .carousel-nav {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(120, 203, 205, 0.3);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    color: var(--primary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .carousel-nav:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: var(--black);
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+  }
+
+  .carousel-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .carousel-viewport {
+    flex: 1;
+    overflow: hidden;
+    border-radius: 1rem;
+  }
+
+  .carousel-track {
+    display: flex;
+    will-change: transform;
+  }
+
+  .testimonial-card {
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.4s ease;
+  }
+
+  .testimonial-card.active {
+    opacity: 1;
+  }
+
+  .card-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    min-height: 280px;
+  }
+
+  .testimonial-card:hover .card-inner {
+    border-color: rgba(120, 203, 205, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(120, 203, 205, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .quote-icon {
+    color: var(--primary-color);
+    opacity: 0.3;
+    margin-bottom: 1rem;
+  }
+
+  .quote {
+    flex: 1;
+    margin: 0;
+  }
+
+  .quote p {
+    font-style: italic;
+    color: var(--text-color);
+    line-height: 1.8;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .author {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .stars {
+    color: #f1c40f;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+  }
+
+  .name {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-style: normal;
+  }
+
+  .carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+
+  .indicator:hover {
+    background: rgba(120, 203, 205, 0.5);
+  }
+
+  .indicator.active {
+    background: var(--primary-color);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 1024px) {
+    .carousel-nav {
+      width: 40px;
+      height: 40px;
+    }
+
+    .carousel-nav svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .testimonials {
+      padding: 4rem 0;
+    }
+
+    .carousel-wrapper {
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .carousel-nav {
+      width: 36px;
+      height: 36px;
+    }
+
+    .carousel-nav svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .card-inner {
+      padding: 1.5rem;
+      min-height: 260px;
+    }
+
+    .quote p {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .carousel-nav {
+      display: none;
+    }
+
+    .carousel-wrapper {
+      padding: 0;
+    }
+
+    .card-inner {
+      min-height: 240px;
+    }
+
+    .quote-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+</style>

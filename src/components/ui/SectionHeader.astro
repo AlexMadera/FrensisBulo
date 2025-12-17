@@ -1,0 +1,68 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  centered?: boolean;
+  light?: boolean;
+}
+
+const { title, subtitle, centered = true, light = false } = Astro.props;
+---
+
+<div class:list={['section-header', { centered, light }]}>
+  {subtitle && <span class="subtitle-tag">{subtitle}</span>}
+  <h2 class="section-title">
+    <span class="text-wrapper">{title}</span>
+  </h2>
+</div>
+
+<style>
+  .section-header {
+    margin-bottom: 4rem;
+    position: relative;
+  }
+
+  .section-header.centered {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .subtitle-tag {
+    display: inline-block;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .section-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--white);
+    margin: 0;
+    line-height: 1.1;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .light .section-title {
+    color: var(--bg-color);
+  }
+
+  .text-wrapper {
+    display: inline-block;
+    background: linear-gradient(to right, var(--white) 50%, var(--text-muted) 50%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: background-position 0.5s ease;
+  }
+
+  .section-header:hover .text-wrapper {
+    background-position: 0 0;
+  }
+</style>

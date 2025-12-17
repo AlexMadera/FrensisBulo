@@ -1,0 +1,489 @@
+---
+import type { SiteContent } from '../../i18n/content';
+import Container from '../ui/Container.astro';
+import SectionHeader from '../ui/SectionHeader.astro';
+
+interface Props {
+  data: SiteContent['contact'];
+  location: SiteContent['location'];
+}
+
+const { data, location } = Astro.props;
+
+const whatsappNumber = data.phone.replace(/\s/g, '').replace('+', '');
+const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+
+const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
+const appleMapsUrl = `https://maps.apple.com/?ll=${location.latitude},${location.longitude}&q=${encodeURIComponent(data.address)}`;
+const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitude}&navigate=yes`;
+---
+
+<section id="contact" class="contact" aria-label="Contact information">
+  <div class="contact-bg">
+    <div class="gradient-overlay"></div>
+    <div class="noise-overlay"></div>
+  </div>
+  
+  <Container class="contact-container">
+    <SectionHeader title={data.title} subtitle={data.subtitle} />
+    
+    <div class="contact-content">
+      <div class="contact-card">
+        <div class="contact-details">
+          <div class="detail-item">
+            <div class="detail-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div class="detail-content">
+              <span class="detail-label">Location</span>
+              <strong>{data.name}</strong>
+              <p>{data.address}</p>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+            <div class="detail-content">
+              <span class="detail-label">Phone</span>
+              <a href={`tel:${data.phone.replace(/\s/g, '')}`}>{data.phone}</a>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div class="detail-content">
+              <span class="detail-label">Email</span>
+              <a href={`mailto:${data.email}`}>{data.email}</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <a 
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="action-btn whatsapp"
+            aria-label="Contact us on WhatsApp"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            <span>WhatsApp</span>
+          </a>
+          
+          <a 
+            href={`tel:${data.phone.replace(/\s/g, '')}`}
+            class="action-btn call"
+            aria-label="Call us"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <span>Call</span>
+          </a>
+          
+          <a 
+            href={`mailto:${data.email}`}
+            class="action-btn email"
+            aria-label="Email us"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <span>Email</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="directions-section">
+        <span class="directions-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+          <span>Get Directions</span>
+        </span>
+        
+        <nav class="directions-nav" aria-label="Get directions">
+          <a 
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="direction-link google"
+            aria-label="Open in Google Maps"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#4285F4" d="M24 4c-7.73 0-14 6.27-14 14 0 10.5 14 26 14 26s14-15.5 14-26c0-7.73-6.27-14-14-14zm0 19c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+            </svg>
+            <span>Google Maps</span>
+          </a>
+          
+          <a 
+            href={appleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="direction-link apple"
+            aria-label="Open in Apple Maps"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+            <span>Apple Maps</span>
+          </a>
+          
+          <a 
+            href={wazeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="direction-link waze"
+            aria-label="Open in Waze"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#fff" stroke="#333" stroke-width="0.8" d="M12 3c-4.4 0-8 3.3-8 7.5 0 1.9.7 3.5 2 4.8-.3 1.1-.7 2.2-1.3 2.8.7.1 1.9-.1 3.3-.9 1.2.4 2.6.6 4 .6 4.4 0 8-3.3 8-7.5S16.4 3 12 3z"/>
+              <circle fill="#333" cx="9" cy="9.5" r="1.3"/>
+              <circle fill="#333" cx="15" cy="9.5" r="1.3"/>
+              <path fill="none" stroke="#333" stroke-width="1" stroke-linecap="round" d="M8.5 13c1.3 1.2 5.2 1.2 7 0"/>
+            </svg>
+            <span>Waze</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const contactTl = gsap.timeline({
+    defaults: { ease: 'power4.out' },
+    scrollTrigger: {
+      trigger: '#contact',
+      start: 'top 75%',
+    }
+  });
+
+  contactTl
+    .fromTo('#contact .contact-card',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.7 }
+    )
+    .fromTo('#contact .directions-section',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.4'
+    );
+</script>
+
+<style>
+  .contact {
+    position: relative;
+    background: var(--bg-color);
+    padding: 5rem 0;
+    overflow: hidden;
+  }
+
+  .contact-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(120, 203, 205, 0.1) 0%, transparent 50%),
+      linear-gradient(180deg, var(--bg-color) 0%, rgba(14, 14, 14, 0.98) 100%);
+  }
+
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .contact-container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .contact-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contact-card {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2rem;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .detail-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .detail-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(120, 203, 205, 0.1);
+    border: 1px solid rgba(120, 203, 205, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary-color);
+  }
+
+  .detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .detail-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary-color);
+  }
+
+  .detail-content strong {
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .detail-content p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .detail-content a {
+    color: var(--text-color);
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+  }
+
+  .detail-content a:hover {
+    color: var(--primary-color);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .action-btn.whatsapp {
+    background: #25D366;
+    color: var(--white);
+  }
+
+  .action-btn.whatsapp:hover {
+    background: #20BD5A;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.35);
+  }
+
+  .action-btn.call {
+    background: rgba(120, 203, 205, 0.15);
+    border: 1px solid rgba(120, 203, 205, 0.3);
+    color: var(--primary-color);
+  }
+
+  .action-btn.call:hover {
+    background: var(--primary-color);
+    color: var(--black);
+    transform: translateY(-2px);
+  }
+
+  .action-btn.email {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+  }
+
+  .action-btn.email:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .directions-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .directions-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  .directions-nav {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .direction-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50px;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .direction-link:hover {
+    transform: translateY(-2px);
+  }
+
+  .direction-link.google:hover {
+    background: rgba(66, 133, 244, 0.12);
+    border-color: rgba(66, 133, 244, 0.35);
+    color: #4285f4;
+  }
+
+  .direction-link.apple:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--white);
+  }
+
+  .direction-link.waze:hover {
+    background: rgba(51, 204, 255, 0.12);
+    border-color: rgba(51, 204, 255, 0.35);
+    color: #33ccff;
+  }
+
+  @media (max-width: 768px) {
+    .contact {
+      padding: 4rem 0;
+    }
+
+    .contact-content {
+      margin-top: 2rem;
+      gap: 2rem;
+    }
+
+    .contact-card {
+      padding: 1.5rem;
+    }
+
+    .action-buttons {
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      min-width: calc(50% - 0.375rem);
+    }
+
+    .action-btn.whatsapp {
+      min-width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact {
+      padding: 3rem 0;
+    }
+
+    .contact-card {
+      padding: 1.25rem;
+    }
+
+    .detail-item {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .detail-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .action-btn {
+      padding: 0.75rem 0.875rem;
+      font-size: 0.8rem;
+    }
+
+    .direction-link {
+      flex: 1;
+      justify-content: center;
+      min-width: 100px;
+    }
+  }
+</style>

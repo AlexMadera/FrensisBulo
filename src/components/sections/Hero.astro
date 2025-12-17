@@ -1,0 +1,316 @@
+---
+import type { SiteContent } from '../../i18n/content';
+import ThreeBackground from '../ui/ThreeBackground.astro';
+import Container from '../ui/Container.astro';
+
+interface Props {
+  data: SiteContent['hero'];
+}
+
+const { data } = Astro.props;
+---
+
+<section id="home" class="hero">
+  <div class="hero-bg">
+    <ThreeBackground />
+    <div class="gradient-overlay"></div>
+  </div>
+  
+  <Container class="hero-container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="title-line">
+          <span class="title-word">Massagetherapie</span>
+        </span>
+        <span class="title-line">
+          <span class="title-word text-gradient">Frensis Bulo</span>
+        </span>
+      </h1>
+      
+      <p class="hero-tagline">{data.tagline}</p>
+      
+      <div class="hero-cta">
+        <a href="#contact" class="btn-primary">
+          <span class="btn-text">Book Now</span>
+          <span class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </span>
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">10+</span>
+          <span class="stat-label">Years Experience</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">1000+</span>
+          <span class="stat-label">Happy Clients</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">5.0</span>
+          <span class="stat-label">Rating</span>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+  heroTl
+    .fromTo('.title-word', 
+      { y: 100, opacity: 0, rotateX: -30 },
+      { y: 0, opacity: 1, rotateX: 0, duration: 1, stagger: 0.15 }
+    )
+    .fromTo('.hero-tagline',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8 },
+      '-=0.5'
+    )
+    .fromTo('.hero-cta a',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
+      '-=0.4'
+    )
+    .fromTo('.stat-item',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.4, stagger: 0.08 },
+      '-=0.2'
+    )
+    .fromTo('.stat-divider',
+      { scaleY: 0, opacity: 0 },
+      { scaleY: 1, opacity: 1, duration: 0.3, stagger: 0.08 },
+      '-=0.3'
+    );
+
+  gsap.to('.hero-content', {
+    scrollTrigger: {
+      trigger: '.hero',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: 1,
+    },
+    y: 80,
+    opacity: 0.3,
+  });
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 6rem 0 4rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 50% 50%, rgba(14, 14, 14, 0.4) 0%, rgba(14, 14, 14, 0.95) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .title-line {
+    overflow: hidden;
+    display: block;
+    perspective: 1000px;
+  }
+
+  .title-word {
+    display: block;
+    transform-origin: center center;
+  }
+
+  .hero-tagline {
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    max-width: 550px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.75rem;
+    background: var(--primary-color);
+    color: var(--black);
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-primary:hover {
+    background: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(120, 203, 205, 0.3);
+  }
+
+  .btn-primary:hover .btn-icon {
+    transform: translateX(4px);
+  }
+
+  .btn-icon {
+    display: flex;
+    transition: transform 0.3s ease;
+  }
+
+
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.15);
+    transform-origin: center;
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 6rem 0 3rem;
+      min-height: auto;
+    }
+
+    .hero-content {
+      padding: 0 1rem;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 10vw, 3rem);
+    }
+
+    .hero-tagline {
+      font-size: 0.95rem;
+      max-width: 100%;
+    }
+
+    .hero-cta {
+      flex-direction: column;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.8rem;
+    }
+
+    .hero-stats {
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .stat-divider {
+      display: none;
+    }
+
+    .stat-item {
+      flex: 1;
+      min-width: 80px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero {
+      padding: 5rem 0 2rem;
+    }
+
+    .hero-stats {
+      gap: 1rem;
+    }
+
+    .stat-number {
+      font-size: 1.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+    }
+  }
+</style>

@@ -1,0 +1,327 @@
+---
+import type { SiteContent } from '../../i18n/content';
+import Container from '../ui/Container.astro';
+import SectionHeader from '../ui/SectionHeader.astro';
+import Card from '../ui/Card.astro';
+
+interface Props {
+  data: SiteContent['about'];
+}
+
+const { data } = Astro.props;
+---
+
+<section id="about" class="about">
+  <Container>
+    <div class="about-grid">
+      <div class="about-visual">
+        <div class="image-wrapper">
+          <div class="image-glow"></div>
+          <div class="image-frame">
+            <img src="/frensis-hero.jfif" alt="Frensis Bulo" class="profile-image" loading="lazy" />
+          </div>
+          <div class="experience-badge">
+            <span class="badge-number">10+</span>
+            <span class="badge-text">Years Experience</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-content">
+        <h2 class="about-title">{data.title}</h2>
+        <p class="about-intro">{data.intro}</p>
+        
+        <div class="about-features">
+          {data.sections.map((section, index) => (
+            <div class="feature-item" data-index={index}>
+              <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div class="feature-content">
+                <h4>{section.title}</h4>
+                <p>{section.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const aboutTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.about',
+      start: 'top 70%',
+    },
+  });
+
+  aboutTl
+    .fromTo('.image-frame',
+      { scale: 0.8, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' }
+    )
+    .fromTo('.image-glow',
+      { opacity: 0 },
+      { opacity: 1, duration: 0.8 },
+      '-=0.6'
+    )
+    .fromTo('.experience-badge',
+      { scale: 0, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' },
+      '-=0.4'
+    )
+    .fromTo('.section-label',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5 },
+      '-=0.6'
+    )
+    .fromTo('.about-title',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.3'
+    )
+    .fromTo('.about-intro',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5 },
+      '-=0.3'
+    )
+    .fromTo('.feature-item',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.15 },
+      '-=0.2'
+    );
+</script>
+
+<style>
+  .about {
+    padding: 6rem 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--subtle-bg);
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .about-visual {
+    position: relative;
+  }
+
+  .image-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .image-glow {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    background: radial-gradient(circle, rgba(120, 203, 205, 0.25) 0%, transparent 70%);
+    filter: blur(40px);
+    z-index: 0;
+  }
+
+  .image-frame {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  }
+
+  .profile-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .image-frame:hover .profile-image {
+    transform: scale(1.05);
+  }
+
+  .experience-badge {
+    position: absolute;
+    bottom: -1rem;
+    right: -1rem;
+    background: var(--primary-color);
+    color: var(--black);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    box-shadow: 0 10px 30px rgba(120, 203, 205, 0.3);
+  }
+
+  .badge-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .badge-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  .about-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .section-label {
+    display: inline-flex;
+  }
+
+  .section-label span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--primary-color);
+    padding: 0.4rem 1rem;
+    background: rgba(120, 203, 205, 0.1);
+    border-radius: 50px;
+  }
+
+  .about-title {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .about-intro {
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .about-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .feature-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .feature-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(120, 203, 205, 0.2);
+    transform: translateX(5px);
+  }
+
+  .feature-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(120, 203, 205, 0.1);
+    border-radius: 10px;
+    color: var(--primary-color);
+  }
+
+  .feature-content h4 {
+    font-size: 1rem;
+    color: var(--white);
+    margin: 0 0 0.25rem;
+    font-weight: 600;
+  }
+
+  .feature-content p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    .about-visual {
+      order: -1;
+    }
+
+    .image-frame {
+      max-width: 320px;
+    }
+
+    .about-content {
+      text-align: center;
+      align-items: center;
+    }
+
+    .feature-item {
+      text-align: left;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .about {
+      padding: 4rem 0;
+    }
+
+    .image-frame {
+      max-width: 280px;
+    }
+
+    .experience-badge {
+      bottom: -0.5rem;
+      right: -0.5rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .badge-number {
+      font-size: 1.25rem;
+    }
+
+    .badge-text {
+      font-size: 0.55rem;
+    }
+
+    .feature-item {
+      padding: 0.75rem;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+    }
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import type { Language } from '../i18n/content';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: Language;
+}
+
+const { 
+  title, 
+  description = 'Massagetherapie Frensis Bulo - Professional massage therapy at your home or office.',
+  lang = 'en'
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="keywords" content="massagetherapie, massage, Rotterdam, fysiotherapie, Frensis Bulo" />
+    <meta name="author" content="Frensis Bulo" />
+    
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/logo_fb.png" />
+    <meta property="og:locale" content={lang} />
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={`https://frensisbulo.com/${lang}/`} />
+    <meta name="theme-color" content="#78cbcd" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <title>{title}</title>
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Physician",
+      "name": "Massagetherapie Frensis Bulo",
+      "image": "https://frensisbulo.com/logo_fb.png",
+      "@id": "https://frensisbulo.com",
+      "url": "https://frensisbulo.com",
+      "telephone": "+31 6 189 776 07",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Rotterdam",
+        "addressCountry": "NL"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 51.926517,
+        "longitude": 4.462456
+      },
+      "priceRange": "$$",
+      "description": description
+    })} />
+  </head>
+  <body>
+    <slot />
+    
+    <script>
+      import Lenis from 'lenis';
+      import { gsap } from 'gsap';
+      import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Initialize Lenis for smooth scrolling
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+      });
+
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+
+      requestAnimationFrame(raf);
+
+      // Connect Lenis to ScrollTrigger
+      lenis.on('scroll', ScrollTrigger.update);
+
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+      });
+
+      gsap.ticker.lagSmoothing(0);
+    </script>
+  </body>
+</html>

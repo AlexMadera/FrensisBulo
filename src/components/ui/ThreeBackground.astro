@@ -1,0 +1,202 @@
+<div id="canvas-container"></div>
+
+<script>
+  import * as THREE from 'three';
+
+  // Configuration
+  const PARTICLE_COUNT = 100;
+  const CONNECTION_DISTANCE = 150;
+  const MOUSE_DISTANCE = 200;
+  const PRIMARY_COLOR = 0x78cbcd; // Matches CSS var(--primary-color)
+
+  // Setup Scene
+  const container = document.getElementById('canvas-container');
+  if (!container) throw new Error('Canvas container not found');
+
+  const scene = new THREE.Scene();
+  
+  // Camera
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 400;
+
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  // Particles
+  const particlesGeometry = new THREE.BufferGeometry();
+  const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+  const particleVelocities = [];
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const x = (Math.random() - 0.5) * 1000;
+    const y = (Math.random() - 0.5) * 1000;
+    const z = (Math.random() - 0.5) * 500;
+
+    particlePositions[i * 3] = x;
+    particlePositions[i * 3 + 1] = y;
+    particlePositions[i * 3 + 2] = z;
+
+    particleVelocities.push({
+      x: (Math.random() - 0.5) * 0.5,
+      y: (Math.random() - 0.5) * 0.5,
+      z: (Math.random() - 0.5) * 0.2
+    });
+  }
+
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+  
+  // Material for particles
+  const particlesMaterial = new THREE.PointsMaterial({
+    color: PRIMARY_COLOR,
+    size: 4,
+    transparent: true,
+    opacity: 0.8,
+    sizeAttenuation: true
+  });
+
+  const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+  scene.add(particleSystem);
+
+  // Lines
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: PRIMARY_COLOR,
+    transparent: true,
+    opacity: 0.15
+  });
+
+  const linesGeometry = new THREE.BufferGeometry();
+  const lines = new THREE.LineSegments(linesGeometry, lineMaterial);
+  scene.add(lines);
+
+  // Mouse interaction
+  const mouse = new THREE.Vector2();
+  const target = new THREE.Vector2();
+  
+  // Raycaster for more accurate interaction if needed, but simple distance check is faster
+  
+  function onMouseMove(event: MouseEvent) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    // Map mouse to world coordinates roughly at z=0
+    // Simple approximation for this effect
+    target.x = mouse.x * 300; 
+    target.y = mouse.y * 300;
+  }
+
+  window.addEventListener('mousemove', onMouseMove);
+
+  // Resize handler
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  window.addEventListener('resize', onWindowResize);
+
+  // Animation Loop
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const positions = particleSystem.geometry.attributes.position.array as Float32Array;
+    
+    // Update particles
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      let x = positions[i * 3];
+      let y = positions[i * 3 + 1];
+      let z = positions[i * 3 + 2];
+
+      // Add velocity
+      x += particleVelocities[i].x;
+      y += particleVelocities[i].y;
+      z += particleVelocities[i].z;
+
+      // Mouse interaction (gentle attraction/repulsion)
+      // We'll do a gentle float towards mouse for a "living" feel
+      // Or subtle repulsion to make it interactive
+      
+      /* 
+      // Optional: Mouse Influence
+      const dx = x - target.x;
+      const dy = y - target.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < MOUSE_DISTANCE) {
+        const force = (MOUSE_DISTANCE - dist) / MOUSE_DISTANCE;
+        x += dx * force * 0.05;
+        y += dy * force * 0.05;
+      }
+      */
+
+      // Boundaries - bounce back
+      if (x > 600 || x < -600) particleVelocities[i].x = -particleVelocities[i].x;
+      if (y > 400 || y < -400) particleVelocities[i].y = -particleVelocities[i].y;
+      if (z > 250 || z < -250) particleVelocities[i].z = -particleVelocities[i].z;
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+    }
+
+    particleSystem.geometry.attributes.position.needsUpdate = true;
+
+    // Update Lines
+    const linePositions = [];
+    const pCount = PARTICLE_COUNT;
+
+    for (let i = 0; i < pCount; i++) {
+      for (let j = i + 1; j < pCount; j++) {
+        const x1 = positions[i * 3];
+        const y1 = positions[i * 3 + 1];
+        const z1 = positions[i * 3 + 2];
+
+        const x2 = positions[j * 3];
+        const y2 = positions[j * 3 + 1];
+        const z2 = positions[j * 3 + 2];
+
+        const dist = Math.sqrt(
+          (x1 - x2) ** 2 +
+          (y1 - y2) ** 2 +
+          (z1 - z2) ** 2
+        );
+
+        if (dist < CONNECTION_DISTANCE) {
+          linePositions.push(x1, y1, z1);
+          linePositions.push(x2, y2, z2);
+        }
+      }
+    }
+
+    linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+    
+    // Slow rotation of whole system
+    scene.rotation.y += 0.001;
+    scene.rotation.x += 0.0005;
+
+    // Breathing effect (Physio theme)
+    const time = Date.now() * 0.001;
+    const breathe = 1 + Math.sin(time * 0.5) * 0.05;
+    scene.scale.setScalar(breathe);
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+
+<style>
+  #canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none; /* Let clicks pass through */
+    overflow: hidden;
+  }
+</style>

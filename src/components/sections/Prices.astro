@@ -1,0 +1,378 @@
+---
+import type { SiteContent } from '../../i18n/content';
+import Container from '../ui/Container.astro';
+
+interface Props {
+  data: SiteContent['prices'];
+}
+
+const { data } = Astro.props;
+---
+
+<section id="prices" class="prices">
+  <div class="prices-bg">
+    <div class="gradient-overlay"></div>
+    <div class="noise-overlay"></div>
+  </div>
+  
+  <Container class="prices-container">
+    <div class="prices-content">
+      <div class="prices-header">
+        <h2 class="prices-title">{data.title}</h2>
+        <p class="prices-subtitle">{data.subtitle}</p>
+      </div>
+
+      <div class="prices-grid">
+        {data.items.map((item, index) => (
+          <div class="price-card" data-index={index}>
+            <div class="card-inner">
+              <div class="card-header">
+                <h3 class="card-title">{item.title}</h3>
+                <div class="price-amount">
+                  <span class="price">{item.price}</span>
+                  <span class="duration">/{item.duration}</span>
+                </div>
+              </div>
+              
+              <div class="card-divider"></div>
+              
+              <ul class="features">
+                {item.features.map((feature) => (
+                  <li>
+                    <span class="feature-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </span>
+                    <span class="feature-text">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <a href="#contact" class="card-cta">
+                <span class="cta-text">Book Now</span>
+                <span class="cta-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </span>
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const pricesTl = gsap.timeline({
+    defaults: { ease: 'power4.out' },
+    scrollTrigger: {
+      trigger: '.prices',
+      start: 'top 75%',
+    }
+  });
+
+  pricesTl
+    .fromTo('.section-label',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6 }
+    )
+    .fromTo('.prices-title',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8 },
+      '-=0.4'
+    )
+    .fromTo('.prices-subtitle',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.5'
+    )
+    .fromTo('.price-card',
+      { opacity: 0, y: 50, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12 },
+      '-=0.3'
+    );
+
+  const cards = document.querySelectorAll('.price-card');
+  cards.forEach((card) => {
+    const inner = card.querySelector('.card-inner');
+    
+    card.addEventListener('mouseenter', () => {
+      gsap.to(inner, { y: -8, duration: 0.3, ease: 'power2.out' });
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      gsap.to(inner, { y: 0, duration: 0.3, ease: 'power2.out' });
+    });
+  });
+</script>
+
+<style>
+  .prices {
+    position: relative;
+    padding: 6rem 0;
+    overflow: hidden;
+  }
+
+  .prices-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(120, 203, 205, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(120, 203, 205, 0.08) 0%, transparent 50%),
+      linear-gradient(180deg, var(--bg-color) 0%, rgba(14, 14, 14, 0.98) 100%);
+  }
+
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .prices-container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .prices-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .prices-header {
+    text-align: center;
+    max-width: 600px;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--primary-color);
+    padding: 0.5rem 1.25rem;
+    background: rgba(120, 203, 205, 0.1);
+    border: 1px solid rgba(120, 203, 205, 0.2);
+    border-radius: 50px;
+    margin-bottom: 1.25rem;
+  }
+
+  .prices-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--white);
+    margin: 0 0 1rem;
+    line-height: 1.1;
+    font-weight: 700;
+  }
+
+  .prices-subtitle {
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .prices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  .price-card {
+    perspective: 1000px;
+  }
+
+  .card-inner {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    height: 100%;
+  }
+
+  .card-inner:hover {
+    border-color: rgba(120, 203, 205, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(120, 203, 205, 0.1);
+  }
+
+  .card-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--white);
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .price-amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .price {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+  }
+
+  .duration {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(120, 203, 205, 0.3), transparent);
+    margin-bottom: 1.5rem;
+  }
+
+  .features {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: rgba(120, 203, 205, 0.15);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .feature-icon svg {
+    color: var(--primary-color);
+  }
+
+  .feature-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    background: transparent;
+    border: 1px solid rgba(120, 203, 205, 0.4);
+    color: var(--primary-color);
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    margin-top: auto;
+  }
+
+  .card-cta:hover {
+    background: var(--primary-color);
+    color: var(--black);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+  }
+
+  .card-cta:hover .cta-icon {
+    transform: translateX(4px);
+  }
+
+  .cta-icon {
+    display: flex;
+    transition: transform 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .prices {
+      padding: 4rem 0;
+    }
+
+    .prices-content {
+      gap: 2.5rem;
+    }
+
+    .prices-grid {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      max-width: 400px;
+    }
+
+    .card-inner {
+      padding: 1.5rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      padding: 0.4rem 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .prices {
+      padding: 3rem 0;
+    }
+
+    .prices-title {
+      font-size: 1.75rem;
+    }
+
+    .price {
+      font-size: 2rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+    }
+
+    .feature-text {
+      font-size: 0.85rem;
+    }
+  }
+</style>
