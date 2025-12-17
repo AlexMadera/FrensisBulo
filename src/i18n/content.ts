@@ -19,6 +19,11 @@ export interface HeroSlide {
   alt: string;
 }
 
+export interface HeroStat {
+  number: string;
+  label: string;
+}
+
 export interface AboutSection {
   title: string;
   content: string;
@@ -54,6 +59,19 @@ export interface ProcessStep {
   description: string;
 }
 
+export interface ContactLabels {
+  location: string;
+  phone: string;
+  email: string;
+  whatsapp: string;
+  call: string;
+  emailButton: string;
+  getDirections: string;
+  googleMaps: string;
+  appleMaps: string;
+  waze: string;
+}
+
 export interface SiteContent {
   nav: {
     links: NavLink[];
@@ -62,12 +80,22 @@ export interface SiteContent {
     slides: HeroSlide[];
     logo: string;
     tagline: string;
+    buttonText: string;
+    stats: {
+      yearsExperience: HeroStat;
+      happyClients: HeroStat;
+      rating: HeroStat;
+    };
   };
   about: {
     title: string;
     intro: string;
     image: string;
     sections: AboutSection[];
+    badge: {
+      number: string;
+      text: string;
+    };
   };
   gallery: {
     title: string;
@@ -103,6 +131,7 @@ export interface SiteContent {
     address: string;
     phone: string;
     email: string;
+    labels: ContactLabels;
     formLabels: {
       name: string;
       email: string;
@@ -225,6 +254,12 @@ export const content: Record<Language, SiteContent> = {
       slides: heroSlides,
       logo: '/logo_fb.png',
       tagline: 'Massagetherapie Frensis Bulo provides you physical relaxation, also mental care and makes it possible for you to make a connection with your inner core.',
+      buttonText: 'Book Now',
+      stats: {
+        yearsExperience: { number: '10+', label: 'Years Experience' },
+        happyClients: { number: '1000+', label: 'Happy Clients' },
+        rating: { number: '5.0', label: 'Rating' },
+      },
     },
     about: {
       title: 'About me',
@@ -244,6 +279,10 @@ export const content: Record<Language, SiteContent> = {
           content: 'MassageTherapie Frensis Bulo (MTFB) stands for; professionalism, physiotherapy knowledge & comfort. Our future vision is to provide physiotherapy session with outstanding services.',
         },
       ],
+      badge: {
+        number: '10+',
+        text: 'Years Experience',
+      },
     },
     gallery: {
       title: 'Gallery',
@@ -332,6 +371,18 @@ export const content: Record<Language, SiteContent> = {
       address: 'Rotterdam',
       phone: '+31 6 189 776 07',
       email: 'info@frensisbulo.com',
+      labels: {
+        location: 'Location',
+        phone: 'Phone',
+        email: 'Email',
+        whatsapp: 'WhatsApp',
+        call: 'Call',
+        emailButton: 'Email',
+        getDirections: 'Get Directions',
+        googleMaps: 'Google Maps',
+        appleMaps: 'Apple Maps',
+        waze: 'Waze',
+      },
       formLabels: {
         name: 'Name',
         email: 'Email',
@@ -359,6 +410,12 @@ export const content: Record<Language, SiteContent> = {
       slides: heroSlides,
       logo: '/logo_fb.png',
       tagline: 'Massagetherapie Frensis Bulo biedt u fysieke ontspanning, ook mentale zorg en maakt het mogelijk om een verbinding te maken met uw innerlijke kern.',
+      buttonText: 'Boek Nu',
+      stats: {
+        yearsExperience: { number: '10+', label: 'Jaar Ervaring' },
+        happyClients: { number: '1000+', label: 'Tevreden Klanten' },
+        rating: { number: '5.0', label: 'Beoordeling' },
+      },
     },
     about: {
       title: 'Over mij',
@@ -378,6 +435,10 @@ export const content: Record<Language, SiteContent> = {
           content: 'MassageTherapie Frensis Bulo (MTFB) staat voor; professionaliteit, fysiotherapie kennis & comfort. Onze toekomstvisie is om uitstekende fysiotherapie sessies aan te bieden.',
         },
       ],
+      badge: {
+        number: '10+',
+        text: 'Jaar Ervaring',
+      },
     },
     gallery: {
       title: 'Galerij',
@@ -466,6 +527,18 @@ export const content: Record<Language, SiteContent> = {
       address: 'Rotterdam',
       phone: '+31 6 189 776 07',
       email: 'info@frensisbulo.com',
+      labels: {
+        location: 'Locatie',
+        phone: 'Telefoon',
+        email: 'E-mail',
+        whatsapp: 'WhatsApp',
+        call: 'Bellen',
+        emailButton: 'E-mail',
+        getDirections: 'Routebeschrijving',
+        googleMaps: 'Google Maps',
+        appleMaps: 'Apple Maps',
+        waze: 'Waze',
+      },
       formLabels: {
         name: 'Naam',
         email: 'E-mail',
@@ -493,6 +566,12 @@ export const content: Record<Language, SiteContent> = {
       slides: heroSlides,
       logo: '/logo_fb.png',
       tagline: 'Massagetherapie Frensis Bulo ta ofresé bo relahashon físiko, tambe kuido mental i ta hasi posibel pa bo hasi un konekshon ku bo núkleo interior.',
+      buttonText: 'Reserva Awor',
+      stats: {
+        yearsExperience: { number: '10+', label: 'Aña di Eksperiensia' },
+        happyClients: { number: '1000+', label: 'Klientenan Kontentu' },
+        rating: { number: '5.0', label: 'Kalifikashon' },
+      },
     },
     about: {
       title: 'Tokante di mi',
@@ -512,6 +591,10 @@ export const content: Record<Language, SiteContent> = {
           content: 'MassageTherapie Frensis Bulo (MTFB) ta nifiká: profeshonalidat, konosementu di fisioterapia & komodidat. Nos vishon di futuro ta pa ofresé seshonnan di fisioterapia ku servisio excelente.',
         },
       ],
+      badge: {
+        number: '10+',
+        text: 'Aña di Eksperiensia',
+      },
     },
     gallery: {
       title: 'Galeria',
@@ -600,6 +683,18 @@ export const content: Record<Language, SiteContent> = {
       address: 'Rotterdam',
       phone: '+31 6 189 776 07',
       email: 'info@frensisbulo.com',
+      labels: {
+        location: 'Lokashon',
+        phone: 'Telefòn',
+        email: 'Email',
+        whatsapp: 'WhatsApp',
+        call: 'Yama',
+        emailButton: 'Email',
+        getDirections: 'Haña Direkshonan',
+        googleMaps: 'Google Maps',
+        appleMaps: 'Apple Maps',
+        waze: 'Waze',
+      },
       formLabels: {
         name: 'Nòmber',
         email: 'Email',
@@ -627,6 +722,12 @@ export const content: Record<Language, SiteContent> = {
       slides: heroSlides,
       logo: '/logo_fb.png',
       tagline: 'Massagetherapie Frensis Bulo te proporciona relajación física, también cuidado mental y te permite conectar con tu núcleo interior.',
+      buttonText: 'Reservar Ahora',
+      stats: {
+        yearsExperience: { number: '10+', label: 'Años de Experiencia' },
+        happyClients: { number: '1000+', label: 'Clientes Felices' },
+        rating: { number: '5.0', label: 'Calificación' },
+      },
     },
     about: {
       title: 'Sobre mí',
@@ -646,6 +747,10 @@ export const content: Record<Language, SiteContent> = {
           content: 'MassageTherapie Frensis Bulo (MTFB) significa: profesionalismo, conocimiento de fisioterapia y comodidad. Nuestra visión futura es proporcionar sesiones de fisioterapia con servicios sobresalientes.',
         },
       ],
+      badge: {
+        number: '10+',
+        text: 'Años de Experiencia',
+      },
     },
     gallery: {
       title: 'Galería',
@@ -734,6 +839,18 @@ export const content: Record<Language, SiteContent> = {
       address: 'Rotterdam',
       phone: '+31 6 189 776 07',
       email: 'info@frensisbulo.com',
+      labels: {
+        location: 'Ubicación',
+        phone: 'Teléfono',
+        email: 'Correo',
+        whatsapp: 'WhatsApp',
+        call: 'Llamar',
+        emailButton: 'Correo',
+        getDirections: 'Obtener Direcciones',
+        googleMaps: 'Google Maps',
+        appleMaps: 'Apple Maps',
+        waze: 'Waze',
+      },
       formLabels: {
         name: 'Nombre',
         email: 'Correo',
@@ -754,3 +871,6 @@ export function getContent(lang: Language): SiteContent {
 export function isValidLanguage(lang: string): lang is Language {
   return lang in languages;
 }
+
+// Export all content for client-side use
+export { content as allContent };

@@ -1,3 +1,367 @@
 ---
-return Astro.redirect('/en/');
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import Hero from '../components/sections/Hero.astro';
+import About from '../components/sections/About.astro';
+import Gallery from '../components/sections/Gallery.astro';
+import WorkingMethod from '../components/sections/WorkingMethod.astro';
+import Prices from '../components/sections/Prices.astro';
+import Testimonials from '../components/sections/Testimonials.astro';
+import Contact from '../components/sections/Contact.astro';
+import { languages, getContent, allContent, defaultLang, type Language } from '../i18n/content';
+
+// Get stored language from cookie for SSR (Netlify can read cookies)
+// Or default to English
+const lang: Language = defaultLang;
+const content = getContent(lang);
+
+// Serialize all content for client-side language switching
+const allContentJson = JSON.stringify(allContent);
 ---
+
+<Layout title={`Massagetherapie Frensis Bulo - ${languages[lang]}`} lang={lang}>
+  <Header data={content.nav} currentLang={lang} />
+
+  <main>
+    <Hero data={content.hero} />
+    <WorkingMethod data={content.workingMethod} />
+    <Gallery data={content.gallery} />
+    <About data={content.about} />
+    <Testimonials data={content.testimonials} />
+    <Prices data={content.prices} />
+    <Contact data={content.contact} location={content.location} />
+  </main>
+
+  <Footer
+    contact={content.contact}
+    nav={content.nav}
+    copyright={content.footer.copyright}
+  />
+</Layout>
+
+<!-- Store all content for client-side language switching -->
+<script is:inline define:vars={{ allContentJson }}>
+  window.__ALL_CONTENT__ = JSON.parse(allContentJson);
+</script>
+
+<script>
+  // Language Manager for client-side language switching
+  const STORAGE_KEY = 'frensis-bulo-lang';
+  const VALID_LANGS = ['en', 'nl', 'pa', 'es'];
+
+  interface LanguageManager {
+    getCurrentLang: () => string;
+    setLang: (lang: string) => void;
+    init: () => void;
+  }
+
+  function createLanguageManager(): LanguageManager {
+    function getCurrentLang(): string {
+      if (typeof localStorage === 'undefined') return 'en';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored && VALID_LANGS.includes(stored) ? stored : 'en';
+    }
+
+    function setLang(lang: string): void {
+      if (!VALID_LANGS.includes(lang)) return;
+      localStorage.setItem(STORAGE_KEY, lang);
+
+      // Update the page content
+      updatePageContent(lang);
+
+      // Update html lang attribute
+      document.documentElement.lang = lang;
+
+      // Update active states on language buttons
+      updateLangButtons(lang);
+    }
+
+    function updateLangButtons(lang: string): void {
+      // Update dropdown language options
+      document.querySelectorAll('.lang-option').forEach((el) => {
+        const optionLang = el.getAttribute('data-lang') || '';
+        el.classList.toggle('active', optionLang === lang);
+        el.setAttribute('aria-selected', optionLang === lang ? 'true' : 'false');
+      });
+
+      // Update mobile language options
+      document.querySelectorAll('.mobile-lang-option').forEach((el) => {
+        const optionLang = el.getAttribute('data-lang') || '';
+        el.classList.toggle('active', optionLang === lang);
+      });
+
+      // Update the current flag in the language button
+      updateCurrentFlag(lang);
+    }
+
+    function updateCurrentFlag(lang: string): void {
+      const langBtn = document.querySelector('.lang-btn');
+      if (!langBtn) return;
+
+      // Find the flag from the active language option
+      const activeLangOption = document.querySelector(`.lang-option[data-lang="${lang}"]`);
+      if (activeLangOption) {
+        const flagHtml = activeLangOption.querySelector('.flag')?.innerHTML;
+        const currentFlag = langBtn.querySelector('.flag');
+        if (currentFlag && flagHtml) {
+          currentFlag.innerHTML = flagHtml;
+        }
+      }
+    }
+
+    function updatePageContent(lang: string): void {
+      const allContent = (window as any).__ALL_CONTENT__;
+      if (!allContent || !allContent[lang]) return;
+
+      const content = allContent[lang];
+
+      // Update navigation links - desktop
+      const desktopNavLinks = document.querySelectorAll('.nav-desktop .nav-link .link-text');
+      content.nav.links.forEach((link: { text: string }, index: number) => {
+        if (desktopNavLinks[index]) {
+          desktopNavLinks[index].textContent = link.text;
+        }
+      });
+
+      // Update mobile nav links
+      const mobileNavLinks = document.querySelectorAll('.nav-mobile .nav-link .link-text');
+      content.nav.links.forEach((link: { text: string }, index: number) => {
+        if (mobileNavLinks[index]) {
+          mobileNavLinks[index].textContent = link.text;
+        }
+      });
+
+      // Update hero tagline
+      const heroTagline = document.querySelector('.hero-tagline');
+      if (heroTagline) {
+        heroTagline.textContent = content.hero.tagline;
+      }
+
+      // Update hero button text
+      const heroButton = document.querySelector('[data-i18n="hero-button-text"]');
+      if (heroButton) {
+        heroButton.textContent = content.hero.buttonText;
+      }
+
+      // Update hero stats
+      const statYearsNumber = document.querySelector('[data-i18n="hero-stat-years-number"]');
+      const statYearsLabel = document.querySelector('[data-i18n="hero-stat-years-label"]');
+      const statClientsNumber = document.querySelector('[data-i18n="hero-stat-clients-number"]');
+      const statClientsLabel = document.querySelector('[data-i18n="hero-stat-clients-label"]');
+      const statRatingNumber = document.querySelector('[data-i18n="hero-stat-rating-number"]');
+      const statRatingLabel = document.querySelector('[data-i18n="hero-stat-rating-label"]');
+      
+      if (statYearsNumber) statYearsNumber.textContent = content.hero.stats.yearsExperience.number;
+      if (statYearsLabel) statYearsLabel.textContent = content.hero.stats.yearsExperience.label;
+      if (statClientsNumber) statClientsNumber.textContent = content.hero.stats.happyClients.number;
+      if (statClientsLabel) statClientsLabel.textContent = content.hero.stats.happyClients.label;
+      if (statRatingNumber) statRatingNumber.textContent = content.hero.stats.rating.number;
+      if (statRatingLabel) statRatingLabel.textContent = content.hero.stats.rating.label;
+
+      // Update Working Method section
+      const workingMethodSection = document.querySelector('#workingmethod');
+      if (workingMethodSection) {
+        // Update title and subtitle using data-i18n attributes
+        const wmTitle = workingMethodSection.querySelector('[data-i18n="workingmethod-title"]');
+        if (wmTitle) wmTitle.textContent = content.workingMethod.title;
+        const wmSubtitle = workingMethodSection.querySelector('[data-i18n="workingmethod-subtitle"]');
+        if (wmSubtitle) wmSubtitle.textContent = content.workingMethod.subtitle;
+
+        // Update working method steps
+        content.workingMethod.steps.forEach((step: { title: string; description: string }, index: number) => {
+          const stepTitle = workingMethodSection.querySelector(`[data-i18n="workingmethod-step-${index}-title"]`);
+          const stepDesc = workingMethodSection.querySelector(`[data-i18n="workingmethod-step-${index}-description"]`);
+          if (stepTitle) stepTitle.textContent = step.title;
+          if (stepDesc) stepDesc.textContent = step.description;
+        });
+      }
+
+      // Update Gallery section
+      const gallerySection = document.querySelector('#gallery');
+      if (gallerySection) {
+        const galleryTitle = gallerySection.querySelector('.section-title .text-wrapper');
+        if (galleryTitle) galleryTitle.textContent = content.gallery.title;
+        const gallerySubtitle = gallerySection.querySelector('.subtitle-tag');
+        if (gallerySubtitle) gallerySubtitle.textContent = content.gallery.subtitle;
+      }
+
+      // Update About section
+      const aboutSection = document.querySelector('#about');
+      if (aboutSection) {
+        const aboutTitle = aboutSection.querySelector('.about-title');
+        if (aboutTitle) aboutTitle.textContent = content.about.title;
+        const aboutIntro = aboutSection.querySelector('.about-intro');
+        if (aboutIntro) aboutIntro.textContent = content.about.intro;
+
+        // Update about feature sections (Passion, Mission, Vision)
+        const featureItems = aboutSection.querySelectorAll('.feature-item');
+        content.about.sections.forEach((section: { title: string; content: string }, index: number) => {
+          if (featureItems[index]) {
+            const titleEl = featureItems[index].querySelector('h4');
+            const contentEl = featureItems[index].querySelector('p');
+            if (titleEl) titleEl.textContent = section.title;
+            if (contentEl) contentEl.textContent = section.content;
+          }
+        });
+
+        // Update about badge
+        const badgeNumber = aboutSection.querySelector('[data-i18n="about-badge-number"]');
+        const badgeText = aboutSection.querySelector('[data-i18n="about-badge-text"]');
+        if (badgeNumber) badgeNumber.textContent = content.about.badge.number;
+        if (badgeText) badgeText.textContent = content.about.badge.text;
+      }
+
+      // Update Testimonials section
+      const testimonialsSection = document.querySelector('#testimonials');
+      if (testimonialsSection) {
+        const testimonialTitle = testimonialsSection.querySelector('.section-title .text-wrapper');
+        if (testimonialTitle) testimonialTitle.textContent = content.testimonials.title;
+        const testimonialSubtitle = testimonialsSection.querySelector('.subtitle-tag');
+        if (testimonialSubtitle) testimonialSubtitle.textContent = content.testimonials.subtitle;
+
+        // Update testimonial cards
+        const testimonialCards = testimonialsSection.querySelectorAll('.testimonial-card');
+        content.testimonials.items.forEach((item: { text: string; author: string }, index: number) => {
+          if (testimonialCards[index]) {
+            const textEl = testimonialCards[index].querySelector('.testimonial-text');
+            const authorEl = testimonialCards[index].querySelector('.testimonial-author span');
+            if (textEl) textEl.textContent = item.text;
+            if (authorEl) authorEl.textContent = item.author;
+          }
+        });
+      }
+
+      // Update Prices section
+      const pricesSection = document.querySelector('#prices');
+      if (pricesSection) {
+        const pricesTitle = pricesSection.querySelector('.prices-title');
+        if (pricesTitle) pricesTitle.textContent = content.prices.title;
+        const pricesSubtitle = pricesSection.querySelector('.prices-subtitle');
+        if (pricesSubtitle) pricesSubtitle.textContent = content.prices.subtitle;
+
+        // Update price cards
+        const priceCards = pricesSection.querySelectorAll('.price-card');
+        content.prices.items.forEach((item: { title: string; price: string; duration: string; features: string[]; buttonText: string }, index: number) => {
+          if (priceCards[index]) {
+            const titleEl = priceCards[index].querySelector('.card-title');
+            const priceEl = priceCards[index].querySelector('.price');
+            const durationEl = priceCards[index].querySelector('.duration');
+            const buttonEl = priceCards[index].querySelector('.cta-text');
+            const featuresEl = priceCards[index].querySelectorAll('.feature-text');
+
+            if (titleEl) titleEl.textContent = item.title;
+            if (priceEl) priceEl.textContent = item.price;
+            if (durationEl) durationEl.textContent = `/${item.duration}`;
+            if (buttonEl) buttonEl.textContent = item.buttonText;
+            item.features.forEach((feature, fIndex) => {
+              if (featuresEl[fIndex]) featuresEl[fIndex].textContent = feature;
+            });
+          }
+        });
+      }
+
+      // Update Contact section
+      const contactSection = document.querySelector('#contact');
+      if (contactSection) {
+        const contactTitle = contactSection.querySelector('.section-title .text-wrapper');
+        if (contactTitle) contactTitle.textContent = content.contact.title;
+        const contactSubtitle = contactSection.querySelector('.subtitle-tag');
+        if (contactSubtitle) contactSubtitle.textContent = content.contact.subtitle;
+
+        // Update contact labels
+        const locationLabel = contactSection.querySelector('[data-i18n="contact-location-label"]');
+        const phoneLabel = contactSection.querySelector('[data-i18n="contact-phone-label"]');
+        const emailLabel = contactSection.querySelector('[data-i18n="contact-email-label"]');
+        const whatsappBtn = contactSection.querySelector('[data-i18n="contact-whatsapp-btn"]');
+        const callBtn = contactSection.querySelector('[data-i18n="contact-call-btn"]');
+        const emailBtn = contactSection.querySelector('[data-i18n="contact-email-btn"]');
+        const directionsLabel = contactSection.querySelector('[data-i18n="contact-directions-label"]');
+        const googleMapsLink = contactSection.querySelector('[data-i18n="contact-googlemaps"]');
+        const appleMapsLink = contactSection.querySelector('[data-i18n="contact-applemaps"]');
+        const wazeLink = contactSection.querySelector('[data-i18n="contact-waze"]');
+
+        if (locationLabel) locationLabel.textContent = content.contact.labels.location;
+        if (phoneLabel) phoneLabel.textContent = content.contact.labels.phone;
+        if (emailLabel) emailLabel.textContent = content.contact.labels.email;
+        if (whatsappBtn) whatsappBtn.textContent = content.contact.labels.whatsapp;
+        if (callBtn) callBtn.textContent = content.contact.labels.call;
+        if (emailBtn) emailBtn.textContent = content.contact.labels.emailButton;
+        if (directionsLabel) directionsLabel.textContent = content.contact.labels.getDirections;
+        if (googleMapsLink) googleMapsLink.textContent = content.contact.labels.googleMaps;
+        if (appleMapsLink) appleMapsLink.textContent = content.contact.labels.appleMaps;
+        if (wazeLink) wazeLink.textContent = content.contact.labels.waze;
+      }
+
+      // Update page title
+      const languages: Record<string, string> = { en: 'English', nl: 'Nederlands', pa: 'Papiamentu', es: 'Espanol' };
+      document.title = `Massagetherapie Frensis Bulo - ${languages[lang]}`;
+
+      // Update html lang attribute
+      document.documentElement.lang = lang;
+    }
+
+    function init(): void {
+      const currentLang = getCurrentLang();
+
+      // If stored language is different from default, update content
+      if (currentLang !== 'en') {
+        updatePageContent(currentLang);
+        document.documentElement.lang = currentLang;
+        updateLangButtons(currentLang);
+      }
+
+      // Set up language switcher click handlers
+      setupLanguageSwitchers();
+    }
+
+    function setupLanguageSwitchers(): void {
+      // Handle language dropdown clicks
+      document.querySelectorAll('.lang-option').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          const lang = el.getAttribute('data-lang') || '';
+          if (VALID_LANGS.includes(lang)) {
+            setLang(lang);
+            // Close the dropdown
+            const langDropdown = document.querySelector('.lang-dropdown');
+            const langBtn = document.querySelector('.lang-btn');
+            langDropdown?.classList.remove('open');
+            langBtn?.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+
+      // Handle mobile language picker clicks
+      document.querySelectorAll('.mobile-lang-option').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          const lang = el.getAttribute('data-lang') || '';
+          if (VALID_LANGS.includes(lang)) {
+            setLang(lang);
+          }
+        });
+      });
+    }
+
+    return {
+      getCurrentLang,
+      setLang,
+      init
+    };
+  }
+
+  // Initialize language manager
+  const langManager = createLanguageManager();
+
+  // Run on DOM ready and Astro page loads
+  function initLang() {
+    langManager.init();
+  }
+
+  document.addEventListener('DOMContentLoaded', initLang);
+  document.addEventListener('astro:page-load', initLang);
+
+  // Make available globally for debugging
+  (window as any).langManager = langManager;
+</script>

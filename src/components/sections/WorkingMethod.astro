@@ -17,8 +17,8 @@ const { data } = Astro.props;
 
   <Container>
     <header class="section-header-wrapper">
-      <span class="subtitle-tag" data-animate="subtitle">{data.subtitle}</span>
-      <h2 id="working-method-title" class="section-title" data-animate="title">{data.title}</h2>
+      <span class="subtitle-tag" data-animate="subtitle" data-i18n="workingmethod-subtitle">{data.subtitle}</span>
+      <h2 id="working-method-title" class="section-title" data-animate="title" data-i18n="workingmethod-title">{data.title}</h2>
     </header>
 
     <ol class="process-steps" role="list" aria-label="Our process steps">
@@ -37,8 +37,8 @@ const { data } = Astro.props;
             </div>
           </div>
           <article class="step-content">
-            <h3 class="step-title">{step.title}</h3>
-            <p class="step-description">{step.description}</p>
+            <h3 class="step-title" data-i18n={`workingmethod-step-${index}-title`}>{step.title}</h3>
+            <p class="step-description" data-i18n={`workingmethod-step-${index}-description`}>{step.description}</p>
             <div class="step-indicator" aria-hidden="true">
               <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <polyline points="20 6 9 17 4 12"></polyline>

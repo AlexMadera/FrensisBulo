@@ -19,7 +19,7 @@ const flags: Record<string, string> = {
 
 <header id="header">
     <div class="header-container">
-    <a href={`/${currentLang}/`} class="logo-link">
+    <a href="/" class="logo-link">
       <img src="/frensis-bulo-logo-removebg-preview.png" alt="Frensis Bulo" class="logo" />
     </a>
     
@@ -44,13 +44,11 @@ const flags: Record<string, string> = {
         </button>
         <div class="lang-dropdown" role="listbox">
           {Object.entries(languages).map(([lang, label]) => (
-            <a href={`/${lang}/`} class={`lang-option ${lang === currentLang ? 'active' : ''}`} role="option" aria-selected={lang === currentLang}>
+            <button type="button" data-lang={lang} class={`lang-option ${lang === currentLang ? 'active' : ''}`} role="option" aria-selected={lang === currentLang}>
               <span class="flag" set:html={flags[lang]} />
               <span class="lang-code">{lang.toUpperCase()}</span>
-              {lang === currentLang && (
-                <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              )}
-            </a>
+              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
           ))}
         </div>
       </div>
@@ -76,9 +74,9 @@ const flags: Record<string, string> = {
       </ul>
       <div class="mobile-lang-picker">
         {Object.entries(languages).map(([lang]) => (
-          <a href={`/${lang}/`} class={`mobile-lang-option ${lang === currentLang ? 'active' : ''}`}>
+          <button type="button" data-lang={lang} class={`mobile-lang-option ${lang === currentLang ? 'active' : ''}`}>
             <span class="flag" set:html={flags[lang]} />
-          </a>
+          </button>
         ))}
       </div>
     </nav>
@@ -484,6 +482,12 @@ const flags: Record<string, string> = {
     transition: all 0.15s ease;
     font-size: var(--text-xs);
     font-weight: var(--font-medium);
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
   }
 
   .lang-option:hover {
@@ -511,6 +515,12 @@ const flags: Record<string, string> = {
   .check-icon {
     margin-left: auto;
     color: var(--primary-color);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .lang-option.active .check-icon {
+    opacity: 1;
   }
 
   .mobile-toggle {

@@ -32,7 +32,7 @@ const { data } = Astro.props;
 
       <nav class="hero-cta" aria-label="Primary actions">
         <a href="#contact" class="btn-primary" role="button" aria-describedby="cta-description">
-          <span class="btn-text">Book Now</span>
+          <span class="btn-text" data-i18n="hero-button-text">{data.buttonText}</span>
           <span class="btn-icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </span>
@@ -42,18 +42,18 @@ const { data } = Astro.props;
 
       <aside class="hero-stats" aria-label="Professional achievements" itemscope itemtype="https://schema.org/AggregateRating">
         <div class="stat-item">
-          <span class="stat-number" itemprop="ratingCount">10+</span>
-          <span class="stat-label">Years Experience</span>
+          <span class="stat-number" itemprop="ratingCount" data-i18n="hero-stat-years-number">{data.stats.yearsExperience.number}</span>
+          <span class="stat-label" data-i18n="hero-stat-years-label">{data.stats.yearsExperience.label}</span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-          <span class="stat-number">1000+</span>
-          <span class="stat-label">Happy Clients</span>
+          <span class="stat-number" data-i18n="hero-stat-clients-number">{data.stats.happyClients.number}</span>
+          <span class="stat-label" data-i18n="hero-stat-clients-label">{data.stats.happyClients.label}</span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-          <span class="stat-number" itemprop="ratingValue">5.0</span>
-          <span class="stat-label" itemprop="bestRating">Rating</span>
+          <span class="stat-number" itemprop="ratingValue" data-i18n="hero-stat-rating-number">{data.stats.rating.number}</span>
+          <span class="stat-label" itemprop="bestRating" data-i18n="hero-stat-rating-label">{data.stats.rating.label}</span>
         </div>
       </aside>
     </header>

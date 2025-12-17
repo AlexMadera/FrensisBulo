@@ -21,8 +21,8 @@ const { data } = Astro.props;
             <img src="/frensis-hero.jfif" alt="Frensis Bulo" class="profile-image" loading="lazy" />
           </div>
           <div class="experience-badge">
-            <span class="badge-number">10+</span>
-            <span class="badge-text">Years Experience</span>
+            <span class="badge-number" data-i18n="about-badge-number">{data.badge.number}</span>
+            <span class="badge-text" data-i18n="about-badge-text">{data.badge.text}</span>
           </div>
         </div>
       </div>
