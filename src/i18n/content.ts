@@ -213,8 +213,10 @@ export const content: Record<Language, SiteContent> = {
     nav: {
       links: [
         { text: 'Home', href: '#home' },
-        { text: 'About', href: '#about' },
         { text: 'Working Method', href: '#workingmethod' },
+        { text: 'Gallery', href: '#gallery' },
+        { text: 'About', href: '#about' },
+        { text: 'Testimonials', href: '#testimonials' },
         { text: 'Prices', href: '#prices' },
         { text: 'Contact', href: '#contact' },
       ],
@@ -342,8 +344,10 @@ export const content: Record<Language, SiteContent> = {
     nav: {
       links: [
         { text: 'Home', href: '#home' },
-        { text: 'Over', href: '#about' },
         { text: 'Werkwijze', href: '#workingmethod' },
+        { text: 'Galerij', href: '#gallery' },
+        { text: 'Over', href: '#about' },
+        { text: 'Testimonials', href: '#testimonials' },
         { text: 'Prijzen', href: '#prices' },
         { text: 'Contact', href: '#contact' },
       ],
@@ -471,8 +475,10 @@ export const content: Record<Language, SiteContent> = {
     nav: {
       links: [
         { text: 'Página Inisial', href: '#home' },
-        { text: 'Tokante', href: '#about' },
         { text: 'Método di Trabou', href: '#workingmethod' },
+        { text: 'Galería', href: '#gallery' },
+        { text: 'Tokante', href: '#about' },
+        { text: 'Testimonials', href: '#testimonials' },
         { text: 'Preisnan', href: '#prices' },
         { text: 'Kontakto', href: '#contact' },
       ],
@@ -600,8 +606,10 @@ export const content: Record<Language, SiteContent> = {
     nav: {
       links: [
         { text: 'Inicio', href: '#home' },
-        { text: 'Sobre', href: '#about' },
         { text: 'Método de Trabajo', href: '#workingmethod' },
+        { text: 'Galería', href: '#gallery' },
+        { text: 'Sobre', href: '#about' },
+        { text: 'Testimonials', href: '#testimonials' },
         { text: 'Precios', href: '#prices' },
         { text: 'Contacto', href: '#contact' },
       ],

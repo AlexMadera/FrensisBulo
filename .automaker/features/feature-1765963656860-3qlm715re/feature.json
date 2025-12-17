@@ -1,0 +1,22 @@
+{
+  "category": "Uncategorized",
+  "description": "for the pricing, the second and the third must have Contact instead of Book Now\n\n",
+  "steps": [],
+  "images": [],
+  "imagePaths": [
+    {
+      "id": "img-1765963650390-q2zha6tcy",
+      "path": "D:\\AMCoding\\FrensisBulo\\.automaker\\features\\feature-1765963656860-3qlm715re\\images\\pasted-image-2025-12-17T09-27-30-374Z-1765963650385.png",
+      "filename": "pasted-image-2025-12-17T09-27-30-374Z.png",
+      "mimeType": "image/png"
+    }
+  ],
+  "skipTests": true,
+  "model": "sonnet",
+  "thinkingLevel": "none",
+  "branchName": "master",
+  "priority": 2,
+  "status": "in_progress",
+  "id": "feature-1765963656860-3qlm715re",
+  "updatedAt": "2025-12-17T09:27:38.314Z"
+}
