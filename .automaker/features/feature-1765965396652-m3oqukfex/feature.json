@@ -1,0 +1,17 @@
+{
+  "category": "Uncategorized",
+  "description": "make sure full the content is translatable",
+  "steps": [],
+  "images": [],
+  "imagePaths": [],
+  "skipTests": true,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "branchName": "master",
+  "priority": 2,
+  "status": "waiting_approval",
+  "id": "feature-1765965396652-m3oqukfex",
+  "startedAt": "2025-12-17T09:56:38.697Z",
+  "updatedAt": "2025-12-17T09:56:51.675Z",
+  "justFinishedAt": "2025-12-17T09:56:51.675Z"
+}
