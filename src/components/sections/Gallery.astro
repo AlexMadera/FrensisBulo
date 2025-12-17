@@ -2,19 +2,67 @@
 import type { SiteContent } from '../../i18n/content';
 import Container from '../ui/Container.astro';
 import SectionHeader from '../ui/SectionHeader.astro';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface Props {
   data: SiteContent['gallery'];
 }
 
 const { data } = Astro.props;
-const { title, subtitle, albums, images } = data;
+const { title, subtitle, albums } = data;
 
-// Clone images for infinite loop effect
-const loopImages = [...images, ...images, ...images]; 
+// Dynamically read images from public/gallery folder
+// Images must follow the naming convention: name_tag.ext (e.g., image1_therapy.jpg)
+// The tag determines which album the image belongs to
+function getGalleryImages() {
+  const galleryPath = path.join(process.cwd(), 'public', 'gallery');
+
+  try {
+    const files = fs.readdirSync(galleryPath);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
+    const images = files
+      .filter(file => {
+        const ext = path.extname(file).toLowerCase();
+        return imageExtensions.includes(ext);
+      })
+      .filter(file => {
+        // Only include files that match the name_tag pattern
+        const nameWithoutExt = path.basename(file, path.extname(file));
+        return nameWithoutExt.includes('_');
+      })
+      .map(file => {
+        const nameWithoutExt = path.basename(file, path.extname(file));
+        // Extract the tag from name_tag format (last part after underscore)
+        const parts = nameWithoutExt.split('_');
+        const tag = parts[parts.length - 1].toLowerCase();
+
+        return {
+          src: `/gallery/${file}`,
+          alt: nameWithoutExt.replace(/_/g, ' '),
+          album: tag
+        };
+      });
+
+    return images;
+  } catch (error) {
+    console.error('Error reading gallery directory:', error);
+    return [];
+  }
+}
+
+const images = getGalleryImages();
+
+// Only use carousel with image cloning if we have 3 or more images
+// Otherwise, show images without cloning to avoid duplicates
+const useCarousel = images.length >= 3;
+const loopImages = useCarousel
+  ? [...images, ...images, ...images]
+  : images;
 ---
 
-<section id="gallery" class="gallery" aria-label="Image Gallery">
+<section id="gallery" class="gallery" aria-label="Image Gallery" data-use-carousel={useCarousel.toString()}>
   <Container class="gallery-container">
     <SectionHeader title={title} subtitle={subtitle} />
     
@@ -118,20 +166,21 @@ const loopImages = [...images, ...images, ...images];
     private lightboxCaption: HTMLElement;
     private lightboxPrev: HTMLButtonElement;
     private lightboxNext: HTMLButtonElement;
-    
+
     private position = 0;
     private isDragging = false;
     private startX = 0;
     private startPosition = 0;
     private currentAlbum = 'all';
     private currentLightboxIndex = 0;
-    
+
     private autoScrollSpeed = 0.5;
     private itemWidth = 320;
     private gap = 24;
     private skew = 0;
     private velocity = 0;
     private lastX = 0;
+    private useCarousel = true;
 
     constructor() {
       this.track = document.getElementById('gallery-track') as HTMLElement;
@@ -144,6 +193,10 @@ const loopImages = [...images, ...images, ...images];
       this.lightboxPrev = this.lightbox.querySelector('.lightbox-prev') as HTMLButtonElement;
       this.lightboxNext = this.lightbox.querySelector('.lightbox-next') as HTMLButtonElement;
 
+      // Check if carousel mode is enabled (requires 3+ images)
+      const gallerySection = document.getElementById('gallery');
+      this.useCarousel = gallerySection?.dataset.useCarousel === 'true';
+
       this.init();
     }
 
@@ -153,12 +206,20 @@ const loopImages = [...images, ...images, ...images];
       this.setupDrag();
       this.setupLightbox();
       this.setupKeyboardNav();
-      
-      // Start loop
-      gsap.ticker.add(this.render.bind(this));
-      
+
+      // Only start auto-scroll loop if carousel mode is enabled
+      if (this.useCarousel) {
+        gsap.ticker.add(this.render.bind(this));
+      } else {
+        // For non-carousel mode, just center the images
+        this.renderStatic();
+      }
+
       window.addEventListener('resize', () => {
         this.calculateItemWidth();
+        if (!this.useCarousel) {
+          this.renderStatic();
+        }
       });
     }
 
@@ -257,14 +318,35 @@ const loopImages = [...images, ...images, ...images];
        const trackWidth = this.filteredItems.length * (this.itemWidth + this.gap);
        const viewportWidth = window.innerWidth;
        const maxScroll = Math.max(0, trackWidth - viewportWidth);
-       
+
        if (this.position > maxScroll) this.position = maxScroll;
        if (this.position < 0) this.position = 0;
 
-       gsap.set(this.track, { 
+       gsap.set(this.track, {
          x: -this.position,
          skewX: -this.skew
        });
+    }
+
+    private renderStatic() {
+       // For non-carousel mode (< 3 images), center the images without animation
+       const trackWidth = this.items.length * (this.itemWidth + this.gap) - this.gap;
+       const viewportWidth = window.innerWidth;
+
+       // Center the images if they fit within the viewport
+       if (trackWidth < viewportWidth) {
+         const centerOffset = (viewportWidth - trackWidth) / 2;
+         gsap.set(this.track, {
+           x: centerOffset,
+           skewX: 0
+         });
+       } else {
+         // If images are wider than viewport, just align to start
+         gsap.set(this.track, {
+           x: 0,
+           skewX: 0
+         });
+       }
     }
 
     private setupFilters(): void {
@@ -286,40 +368,97 @@ const loopImages = [...images, ...images, ...images];
     private filterByAlbum(album: string): void {
       this.currentAlbum = album;
       this.position = 0;
-      
+
+      // If not in carousel mode, just filter without worrying about clones
+      if (!this.useCarousel) {
+        this.items.forEach(item => {
+          const itemAlbum = item.dataset.album;
+          const shouldShow = album === 'all' || itemAlbum === album;
+
+          gsap.to(item, {
+            opacity: shouldShow ? 1 : 0.2,
+            scale: shouldShow ? 1 : 0.8,
+            duration: 0.4,
+            onComplete: () => {
+              item.style.display = shouldShow ? 'block' : 'none';
+            }
+          });
+        });
+
+        setTimeout(() => {
+          this.filteredItems = this.items.filter(item => item.style.display !== 'none');
+          this.renderStatic();
+        }, 400);
+        return;
+      }
+
+      // Carousel mode: we have 3x cloned images
+      // Calculate the original image count (before 3x cloning)
+      const originalCount = this.items.length / 3;
+
+      // First, count how many unique images match the filter
+      const uniqueMatchingImages = new Set<string>();
       this.items.forEach(item => {
         const itemAlbum = item.dataset.album;
-        // logic: if album is 'all', we show everything (which is the triple set)
-        // if specific album, we might only show one instance of each? 
-        // For simplicity, 'all' = full loop. Filtered = simple list.
-        
-        const shouldShow = album === 'all' || itemAlbum === album;
-        
+        if (album === 'all' || itemAlbum === album) {
+          const src = item.querySelector('.gallery-overlay')?.getAttribute('data-src') || '';
+          uniqueMatchingImages.add(src);
+        }
+      });
+
+      const matchingCount = uniqueMatchingImages.size;
+      const shouldUseCarouselForFilter = matchingCount >= 3 && album === 'all';
+
+      this.items.forEach((item, index) => {
+        const itemAlbum = item.dataset.album;
+        let shouldShow = album === 'all' || itemAlbum === album;
+
+        // If filtering by specific album, only show first instance (not clones)
+        if (shouldShow && album !== 'all') {
+          // Only show items in the first third (original images, not clones)
+          shouldShow = index < originalCount;
+        }
+
         gsap.to(item, {
           opacity: shouldShow ? 1 : 0.2,
           scale: shouldShow ? 1 : 0.8,
           duration: 0.4,
           onComplete: () => {
-             item.style.display = shouldShow ? 'block' : 'none';
-             if (shouldShow && album !== 'all') {
-                // If filtered, ensure we only see unique items (hide the clones)
-                // Actually, the clones have same album.
-                // We'll just show the first instance of each image for filtered views.
-                // Clones are at indices: i, i + len, i + 2*len
-                // We can check data-index.
-                const realIndex = parseInt(item.dataset.index || '0');
-                // The loopImages includes 3 copies. 
-                // Wait, data-index in my template is loop index.
-                // I need to identify unique images.
-             }
+            item.style.display = shouldShow ? 'block' : 'none';
           }
         });
       });
-      
+
       // Update filtered list for calculation
       setTimeout(() => {
-         this.filteredItems = this.items.filter(item => item.style.display !== 'none');
+        this.filteredItems = this.items.filter(item => item.style.display !== 'none');
+
+        // Switch to static rendering if filtered results have < 3 images
+        if (!shouldUseCarouselForFilter) {
+          this.renderStaticFiltered();
+        }
       }, 400);
+    }
+
+    private renderStaticFiltered() {
+      // Center the filtered images without auto-scroll
+      const trackWidth = this.filteredItems.length * (this.itemWidth + this.gap) - this.gap;
+      const viewportWidth = window.innerWidth;
+
+      if (trackWidth < viewportWidth) {
+        const centerOffset = (viewportWidth - trackWidth) / 2;
+        gsap.to(this.track, {
+          x: centerOffset,
+          skewX: 0,
+          duration: 0.4
+        });
+      } else {
+        gsap.to(this.track, {
+          x: 0,
+          skewX: 0,
+          duration: 0.4
+        });
+      }
     }
 
     private setupDrag(): void {
@@ -517,13 +656,20 @@ const loopImages = [...images, ...images, ...images];
     position: relative;
     border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Permanent elevation shadow from the start */
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease;
   }
 
   .gallery-item:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(120, 203, 205, 0.1);
+  }
+
+  /* Mobile: Subtle tap feedback */
+  @media (hover: none) and (pointer: coarse) {
+    .gallery-item:active {
+      transform: scale(0.98);
+    }
   }
 
   .gallery-figure {

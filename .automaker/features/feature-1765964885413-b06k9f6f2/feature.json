@@ -1,0 +1,30 @@
+{
+  "category": "Uncategorized",
+  "description": "it is showing the same image 3 times, this is a bug. I strictly mention to create an array of the images of public/gallery (currently this is 3)\ni will rename them to\nname_tag\n\nthe tag is where they belong. if the name is now like name_tag then dont include them\nit can be\nimage1_tag for example",
+  "steps": [],
+  "images": [],
+  "imagePaths": [
+    {
+      "id": "img-1765964788723-bls597xrn",
+      "path": "D:\\AMCoding\\FrensisBulo\\.automaker\\features\\feature-1765964885413-b06k9f6f2\\images\\pasted-image-2025-12-17T09-46-28-703Z-1765964788720.png",
+      "filename": "pasted-image-2025-12-17T09-46-28-703Z.png",
+      "mimeType": "image/png"
+    },
+    {
+      "id": "img-1765964814176-5dgbpk4mm",
+      "path": "D:\\AMCoding\\FrensisBulo\\.automaker\\features\\feature-1765964885413-b06k9f6f2\\images\\pasted-image-2025-12-17T09-46-54-159Z-1765964814171.png",
+      "filename": "pasted-image-2025-12-17T09-46-54-159Z.png",
+      "mimeType": "image/png"
+    }
+  ],
+  "skipTests": true,
+  "model": "opus",
+  "thinkingLevel": "medium",
+  "branchName": "master",
+  "priority": 2,
+  "status": "waiting_approval",
+  "id": "feature-1765964885413-b06k9f6f2",
+  "startedAt": "2025-12-17T09:52:48.129Z",
+  "updatedAt": "2025-12-17T09:54:33.757Z",
+  "justFinishedAt": "2025-12-17T09:54:33.757Z"
+}

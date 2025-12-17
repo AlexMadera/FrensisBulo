@@ -5,18 +5,67 @@ interface Props {
   class?: string;
 }
 
-const { 
-  elevation = 'none', 
-  hover = true, 
-  class: className = '' 
+const {
+  elevation = 'none',
+  hover = true,
+  class: className = ''
 } = Astro.props;
 ---
 
-<div class:list={['card', `elevation-${elevation}`, { 'has-hover': hover }, className]}>
-  <slot />
+<div class="card-3d-wrapper">
+  <div class:list={['card', `elevation-${elevation}`, { 'has-hover': hover }, className]}>
+    <slot />
+  </div>
 </div>
 
+<script>
+  // 3D Tilt Effect for Cards - Mobile Responsive
+  function initCard3DEffect() {
+    const wrappers = document.querySelectorAll('.card-3d-wrapper');
+
+    // Detect if device supports touch (mobile/tablet)
+    const isTouchDevice = () => {
+      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    };
+
+    // Skip 3D effect on touch devices for better UX
+    if (isTouchDevice()) return;
+
+    wrappers.forEach((wrapper) => {
+      const card = wrapper.querySelector('.card') as HTMLElement;
+      if (!card || !card.classList.contains('has-hover')) return;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const rect = wrapper.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Calculate rotation (max 8 degrees)
+        const rotateX = ((y - centerY) / centerY) * -8;
+        const rotateY = ((x - centerX) / centerX) * 8;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      };
+
+      const handleMouseLeave = () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      };
+
+      wrapper.addEventListener('mousemove', handleMouseMove as EventListener);
+      wrapper.addEventListener('mouseleave', handleMouseLeave);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initCard3DEffect);
+</script>
+
 <style>
+  .card-3d-wrapper {
+    perspective: 1000px;
+  }
+
   .card {
     background: var(--card-bg);
     border-radius: 2px;
@@ -24,7 +73,9 @@ const {
     border: 1px solid rgba(255, 255, 255, 0.03);
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.15s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
   }
 
   .card::before {
@@ -44,20 +95,37 @@ const {
     opacity: 1;
   }
 
+  /* Elevation shadows shown from the start (indicating elevation) */
   .elevation-sm {
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
   }
 
   .elevation-md {
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .elevation-lg {
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .elevation-none {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .has-hover:hover {
-    transform: translateY(-5px);
     border-color: rgba(120, 203, 205, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(120, 203, 205, 0.1);
+  }
+
+  /* Mobile: Disable 3D transforms, keep subtle tap feedback */
+  @media (hover: none) and (pointer: coarse) {
+    .card {
+      transform: none !important;
+    }
+
+    .has-hover:active {
+      transform: scale(0.98) !important;
+      border-color: rgba(120, 203, 205, 0.3);
+    }
   }
 </style>

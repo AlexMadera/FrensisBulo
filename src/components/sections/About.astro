@@ -33,13 +33,15 @@ const { data } = Astro.props;
         
         <div class="about-features">
           {data.sections.map((section, index) => (
-            <div class="feature-item" data-index={index}>
-              <div class="feature-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </div>
-              <div class="feature-content">
-                <h4>{section.title}</h4>
-                <p>{section.content}</p>
+            <div class="feature-item-wrapper" data-index={index}>
+              <div class="feature-item">
+                <div class="feature-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="feature-content">
+                  <h4>{section.title}</h4>
+                  <p>{section.content}</p>
+                </div>
               </div>
             </div>
           ))}
@@ -92,11 +94,65 @@ const { data } = Astro.props;
       { opacity: 1, y: 0, duration: 0.5 },
       '-=0.3'
     )
-    .fromTo('.feature-item',
+    .fromTo('.feature-item-wrapper',
       { opacity: 0, x: -30 },
       { opacity: 1, x: 0, duration: 0.5, stagger: 0.15 },
       '-=0.2'
     );
+
+  // 3D Tilt Effect for Feature Items - Mobile Responsive
+  function initFeatureItem3DEffect() {
+    const wrappers = document.querySelectorAll('.feature-item-wrapper');
+
+    // Detect if device supports touch (mobile/tablet)
+    const isTouchDevice = () => {
+      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    };
+
+    // Skip 3D effect on touch devices for better UX
+    if (isTouchDevice()) return;
+
+    wrappers.forEach((wrapper) => {
+      const item = wrapper.querySelector('.feature-item') as HTMLElement;
+      if (!item) return;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const rect = wrapper.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Calculate rotation (max 6 degrees for smaller items)
+        const rotateX = ((y - centerY) / centerY) * -6;
+        const rotateY = ((x - centerX) / centerX) * 6;
+
+        gsap.to(item, {
+          rotateX: rotateX,
+          rotateY: rotateY,
+          scale: 1.02,
+          duration: 0.15,
+          ease: 'power2.out',
+          transformPerspective: 800,
+        });
+      };
+
+      const handleMouseLeave = () => {
+        gsap.to(item, {
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      };
+
+      wrapper.addEventListener('mousemove', handleMouseMove as EventListener);
+      wrapper.addEventListener('mouseleave', handleMouseLeave);
+    });
+  }
+
+  initFeatureItem3DEffect();
 </script>
 
 <style>
@@ -226,6 +282,10 @@ const { data } = Astro.props;
     margin-top: 0.5rem;
   }
 
+  .feature-item-wrapper {
+    perspective: 800px;
+  }
+
   .feature-item {
     display: flex;
     gap: 1rem;
@@ -233,13 +293,29 @@ const { data } = Astro.props;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+    /* Permanent elevation shadow from the start */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.15);
   }
 
   .feature-item:hover {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(120, 203, 205, 0.2);
-    transform: translateX(5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(120, 203, 205, 0.08);
+  }
+
+  /* Mobile: Subtle tap feedback instead of 3D */
+  @media (hover: none) and (pointer: coarse) {
+    .feature-item {
+      transform: none !important;
+    }
+
+    .feature-item:active {
+      transform: scale(0.98) !important;
+      border-color: rgba(120, 203, 205, 0.2);
+    }
   }
 
   .feature-icon {

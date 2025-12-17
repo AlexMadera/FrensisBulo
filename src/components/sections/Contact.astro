@@ -28,7 +28,8 @@ const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitud
     <SectionHeader title={data.title} subtitle={data.subtitle} />
     
     <div class="contact-content">
-      <div class="contact-card">
+      <div class="contact-card-wrapper">
+        <div class="contact-card">
         <div class="contact-details">
           <div class="detail-item">
             <div class="detail-icon">
@@ -107,8 +108,9 @@ const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitud
             <span>Email</span>
           </a>
         </div>
+        </div>
       </div>
-      
+
       <div class="directions-section">
         <span class="directions-label">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -190,6 +192,56 @@ const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitud
       { opacity: 1, y: 0, duration: 0.6 },
       '-=0.4'
     );
+
+  // 3D Tilt Effect for Contact Card - Mobile Responsive
+  function initContactCard3DEffect() {
+    const cardWrapper = document.querySelector('.contact-card-wrapper');
+    const card = document.querySelector('.contact-card') as HTMLElement;
+
+    // Detect if device supports touch (mobile/tablet)
+    const isTouchDevice = () => {
+      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    };
+
+    // Skip 3D effect on touch devices for better UX
+    if (isTouchDevice() || !cardWrapper || !card) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = cardWrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      // Calculate rotation (max 6 degrees for larger card)
+      const rotateX = ((y - centerY) / centerY) * -6;
+      const rotateY = ((x - centerX) / centerX) * 6;
+
+      gsap.to(card, {
+        rotateX: rotateX,
+        rotateY: rotateY,
+        scale: 1.01,
+        duration: 0.15,
+        ease: 'power2.out',
+        transformPerspective: 1000,
+      });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(card, {
+        rotateX: 0,
+        rotateY: 0,
+        scale: 1,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+    };
+
+    cardWrapper.addEventListener('mousemove', handleMouseMove as EventListener);
+    cardWrapper.addEventListener('mouseleave', handleMouseLeave);
+  }
+
+  initContactCard3DEffect();
 </script>
 
 <style>
@@ -237,6 +289,11 @@ const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitud
     margin-right: auto;
   }
 
+  .contact-card-wrapper {
+    width: 100%;
+    perspective: 1000px;
+  }
+
   .contact-card {
     width: 100%;
     background: rgba(255, 255, 255, 0.03);
@@ -245,6 +302,28 @@ const wazeUrl = `https://waze.com/ul?ll=${location.latitude},${location.longitud
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 2rem;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    /* Permanent elevation shadow from the start */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .contact-card:hover {
+    border-color: rgba(120, 203, 205, 0.3);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(120, 203, 205, 0.15);
+  }
+
+  /* Mobile: Subtle tap feedback instead of 3D */
+  @media (hover: none) and (pointer: coarse) {
+    .contact-card {
+      transform: none !important;
+    }
+
+    .contact-card:active {
+      transform: scale(0.98) !important;
+      border-color: rgba(120, 203, 205, 0.3);
+    }
   }
 
   .contact-details {

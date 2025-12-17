@@ -135,8 +135,9 @@ function renderStars(rating: number): string {
       this.setupTouchSwipe();
       this.updateActiveStates();
       this.animateEntrance();
+      this.init3DEffect();
       this.startAutoplay();
-      
+
       window.addEventListener('resize', () => {
         this.calculateLayout();
         this.goToSlide(this.currentIndex, false);
@@ -310,6 +311,55 @@ function renderStars(rating: number): string {
         { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.1 }
       );
     }
+
+    private init3DEffect(): void {
+      // Detect if device supports touch (mobile/tablet)
+      const isTouchDevice = () => {
+        return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      };
+
+      // Skip 3D effect on touch devices for better UX
+      if (isTouchDevice()) return;
+
+      this.cards.forEach((card) => {
+        const inner = card.querySelector('.card-inner') as HTMLElement;
+        if (!inner) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+
+          // Calculate rotation (max 8 degrees)
+          const rotateX = ((y - centerY) / centerY) * -8;
+          const rotateY = ((x - centerX) / centerX) * 8;
+
+          gsap.to(inner, {
+            rotateX: rotateX,
+            rotateY: rotateY,
+            scale: 1.02,
+            duration: 0.15,
+            ease: 'power2.out',
+            transformPerspective: 1000,
+          });
+        };
+
+        const handleMouseLeave = () => {
+          gsap.to(inner, {
+            rotateX: 0,
+            rotateY: 0,
+            scale: 1,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
+        };
+
+        card.addEventListener('mousemove', handleMouseMove as EventListener);
+        card.addEventListener('mouseleave', handleMouseLeave);
+      });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -401,6 +451,7 @@ function renderStars(rating: number): string {
     flex-shrink: 0;
     opacity: 0.5;
     transition: opacity 0.4s ease;
+    perspective: 1000px;
   }
 
   .testimonial-card.active {
@@ -417,15 +468,30 @@ function renderStars(rating: number): string {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 2rem;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
     min-height: 280px;
+    transform-style: preserve-3d;
+    will-change: transform;
+    /* Permanent elevation shadow from the start */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .testimonial-card:hover .card-inner {
     border-color: rgba(120, 203, 205, 0.3);
     background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(120, 203, 205, 0.1);
-    transform: translateY(-4px);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(120, 203, 205, 0.15);
+  }
+
+  /* Mobile: Subtle tap feedback instead of 3D */
+  @media (hover: none) and (pointer: coarse) {
+    .card-inner {
+      transform: none !important;
+    }
+
+    .testimonial-card:active .card-inner {
+      transform: scale(0.98) !important;
+      border-color: rgba(120, 203, 205, 0.3);
+    }
   }
 
   .quote-icon {

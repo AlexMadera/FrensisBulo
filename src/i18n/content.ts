@@ -127,11 +127,10 @@ const galleryAlbums: GalleryAlbum[] = [
   { id: 'studio', name: 'Studio' },
 ];
 
-const galleryImages: GalleryImage[] = [
-  { src: '/gallery/gallery1.jpg', alt: 'Professional massage therapy session', album: 'therapy' },
-  { src: '/gallery/gallery2.jpg', alt: 'Relaxation massage treatment', album: 'therapy' },
-  { src: '/gallery/gallery3.jpg', alt: 'Massage therapy studio environment', album: 'studio' },
-];
+// Gallery images are now dynamically loaded from public/gallery folder
+// Images must follow the naming convention: name_tag.ext (e.g., image1_therapy.jpg)
+// The tag determines which album the image belongs to
+const galleryImages: GalleryImage[] = [];
 
 const testimonials: Record<Language, Testimonial[]> = {
   en: [
@@ -273,7 +272,7 @@ export const content: Record<Language, SiteContent> = {
           description: 'Guidance on exercises and habits to maintain the benefits of your session.'
         }
       ],
-      backgroundImage: '/gallery/gallery1.jpg',
+      backgroundImage: '/gallery/massage1_therapy.jpg',
     },
     prices: {
       title: 'Prices',
@@ -407,7 +406,7 @@ export const content: Record<Language, SiteContent> = {
           description: 'Advies over oefeningen en gewoonten om de voordelen te behouden.'
         }
       ],
-      backgroundImage: '/gallery/gallery1.jpg',
+      backgroundImage: '/gallery/massage1_therapy.jpg',
     },
     prices: {
       title: 'Prijzen',
@@ -541,7 +540,7 @@ export const content: Record<Language, SiteContent> = {
           description: 'Guia tokante ehersisio i kustumbernan pa mantene benefisionan.'
         }
       ],
-      backgroundImage: '/gallery/gallery1.jpg',
+      backgroundImage: '/gallery/massage1_therapy.jpg',
     },
     prices: {
       title: 'Preisnan',
@@ -675,7 +674,7 @@ export const content: Record<Language, SiteContent> = {
           description: 'Orientación sobre ejercicios y hábitos para mantener los beneficios.'
         }
       ],
-      backgroundImage: '/gallery/gallery1.jpg',
+      backgroundImage: '/gallery/massage1_therapy.jpg',
     },
     prices: {
       title: 'Precios',
