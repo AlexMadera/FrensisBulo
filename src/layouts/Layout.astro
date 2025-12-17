@@ -96,6 +96,9 @@ const {
       });
 
       gsap.ticker.lagSmoothing(0);
+
+      // Expose lenis globally for ScrollTrigger pin compatibility
+      (window as any).lenis = lenis;
     </script>
   </body>
 </html>

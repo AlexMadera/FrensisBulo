@@ -10,29 +10,44 @@ interface Props {
 const { data } = Astro.props;
 ---
 
-<section id="workingmethod" class="working-method">
-  <div class="method-bg">
+<section id="workingmethod" class="working-method" aria-labelledby="working-method-title">
+  <div class="method-bg" aria-hidden="true">
     <div class="gradient-overlay"></div>
   </div>
 
   <Container>
-    <SectionHeader title={data.title} subtitle={data.subtitle} />
+    <header class="section-header-wrapper">
+      <span class="subtitle-tag" data-animate="subtitle">{data.subtitle}</span>
+      <h2 id="working-method-title" class="section-title" data-animate="title">{data.title}</h2>
+    </header>
 
-    <div class="process-steps">
-      <div class="process-line"></div>
-      
+    <ol class="process-steps" role="list" aria-label="Our process steps">
+      <!-- Progress line that fills as steps animate -->
+      <div class="process-line-track" aria-hidden="true">
+        <div class="process-line-fill"></div>
+      </div>
+
       {data.steps.map((step, index) => (
-        <div class="process-step" data-index={index}>
-          <div class="step-marker">
-            <span class="step-number">0{index + 1}</span>
+        <li class="process-step" data-step={index} role="listitem">
+          <div class="step-marker-wrapper">
+            <div class="step-marker" aria-hidden="true">
+              <span class="step-number">0{index + 1}</span>
+              <div class="marker-ring"></div>
+              <div class="marker-pulse"></div>
+            </div>
           </div>
-          <div class="step-content">
+          <article class="step-content">
             <h3 class="step-title">{step.title}</h3>
             <p class="step-description">{step.description}</p>
-          </div>
-        </div>
+            <div class="step-indicator" aria-hidden="true">
+              <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </article>
+        </li>
       ))}
-    </div>
+    </ol>
 
   </Container>
 </section>
@@ -41,34 +56,157 @@ const { data } = Astro.props;
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-  gsap.registerPlugin(ScrollTrigger);
+  // Only run on client
+  if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
 
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: '.working-method',
-      start: 'top 70%',
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const section = document.querySelector('.working-method') as HTMLElement;
+    const steps = document.querySelectorAll('.process-step');
+    const progressLine = document.querySelector('.process-line-fill');
+    const totalSteps = steps.length;
+
+    // If user prefers reduced motion, show everything immediately
+    if (prefersReducedMotion) {
+      // Show all elements without animation
+      gsap.set('[data-animate="subtitle"]', { opacity: 1, y: 0 });
+      gsap.set('[data-animate="title"]', { opacity: 1, y: 0 });
+      gsap.set('.process-line-fill', { scaleX: 1, transformOrigin: 'left center' });
+      gsap.set('.process-step', { opacity: 1 });
+      gsap.set('.step-marker', { scale: 1, opacity: 1 });
+      gsap.set('.step-content', { opacity: 1, x: 0 });
+      gsap.set('.step-indicator', { scale: 1, opacity: 1 });
+      steps.forEach(step => step.classList.add('is-active'));
+    } else {
+      // Set initial states for animation (prevents flash of unstyled content)
+      gsap.set('[data-animate="subtitle"]', { opacity: 0, y: 20 });
+      gsap.set('[data-animate="title"]', { opacity: 0, y: 30 });
+      gsap.set('.process-line-fill', { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set('.process-step', { opacity: 0 });
+      gsap.set('.step-marker', { scale: 0, opacity: 0 });
+      gsap.set('.step-content', { opacity: 0, x: -30 });
+      gsap.set('.step-indicator', { scale: 0, opacity: 0 });
+
+      // Create the pinned scroll-driven animation
+      const scrollTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: () => `+=${window.innerHeight * 2}`, // Pin for 2 viewport heights of scrolling
+          pin: true,
+          pinSpacing: true,
+          scrub: 0.5, // Smooth scrubbing
+          anticipatePin: 1
+        }
+      });
+
+      // Calculate timing for each step within the scroll progress (0 to 1)
+      // Header takes first 15%, each step takes remaining 85% / 4 = ~21% each
+      const headerDuration = 0.15;
+      const stepDuration = 0.85 / totalSteps;
+
+      // Header animations (0 to 0.15)
+      scrollTimeline
+        .to('[data-animate="subtitle"]', {
+          opacity: 1,
+          y: 0,
+          duration: headerDuration * 0.5,
+          ease: 'power2.out'
+        }, 0)
+        .to('[data-animate="title"]', {
+          opacity: 1,
+          y: 0,
+          duration: headerDuration * 0.7,
+          ease: 'power2.out'
+        }, headerDuration * 0.3);
+
+      // Animate each step sequentially
+      steps.forEach((step, index) => {
+        const stepMarker = step.querySelector('.step-marker');
+        const stepContent = step.querySelector('.step-content');
+        const stepIndicator = step.querySelector('.step-indicator');
+        const markerPulse = stepMarker?.querySelector('.marker-pulse');
+
+        // Calculate start time for this step
+        const stepStart = headerDuration + (index * stepDuration);
+
+        // Step visibility and activation
+        scrollTimeline
+          .to(step, {
+            opacity: 1,
+            duration: stepDuration * 0.2,
+            ease: 'power2.out',
+            onStart: () => step.classList.add('is-active')
+          }, stepStart)
+          // Marker entrance with bounce effect
+          .to(stepMarker, {
+            scale: 1,
+            opacity: 1,
+            duration: stepDuration * 0.3,
+            ease: 'back.out(1.7)'
+          }, stepStart)
+          // Pulse animation
+          .fromTo(markerPulse,
+            { scale: 0.8, opacity: 0.6 },
+            { scale: 1.5, opacity: 0, duration: stepDuration * 0.4, ease: 'power2.out' },
+            stepStart + stepDuration * 0.1
+          )
+          // Content slide in
+          .to(stepContent, {
+            opacity: 1,
+            x: 0,
+            duration: stepDuration * 0.4,
+            ease: 'power3.out'
+          }, stepStart + stepDuration * 0.15)
+          // Check indicator
+          .to(stepIndicator, {
+            scale: 1,
+            opacity: 1,
+            duration: stepDuration * 0.25,
+            ease: 'back.out(2)'
+          }, stepStart + stepDuration * 0.4)
+          // Update progress line proportionally
+          .to(progressLine, {
+            scaleX: (index + 1) / totalSteps,
+            duration: stepDuration * 0.5,
+            ease: 'power2.out'
+          }, stepStart + stepDuration * 0.2);
+      });
     }
-  });
 
-  tl.fromTo('.process-line', 
-    { scaleX: 0 },
-    { scaleX: 1, duration: 1, ease: 'power3.inOut' }
-  )
-  .fromTo('.step-marker',
-    { scale: 0, opacity: 0 },
-    { scale: 1, opacity: 1, duration: 0.5, stagger: 0.15, ease: 'back.out(1.7)' },
-    '-=0.5'
-  )
-  .fromTo('.step-content',
-    { y: 30, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.6, stagger: 0.15 },
-    '-=0.8'
-  )
-  .fromTo('.method-cta',
-    { y: 20, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.5 },
-    '-=0.3'
-  );
+    // Add hover interactions for better UX (works regardless of animation state)
+    steps.forEach((step) => {
+      const stepContent = step.querySelector('.step-content');
+      const stepMarker = step.querySelector('.step-marker');
+
+      step.addEventListener('mouseenter', () => {
+        gsap.to(stepMarker, {
+          scale: 1.1,
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+        gsap.to(stepContent, {
+          x: 5,
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+      });
+
+      step.addEventListener('mouseleave', () => {
+        gsap.to(stepMarker, {
+          scale: 1,
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+        gsap.to(stepContent, {
+          x: 0,
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+      });
+    });
+  }
 </script>
 
 <style>
@@ -77,6 +215,10 @@ const { data } = Astro.props;
     padding: 8rem 0;
     overflow: hidden;
     background: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .method-bg {
@@ -86,61 +228,139 @@ const { data } = Astro.props;
     background: radial-gradient(circle at 50% 50%, rgba(120, 203, 205, 0.05) 0%, transparent 60%);
   }
 
+  /* Custom Section Header for this component */
+  .section-header-wrapper {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .subtitle-tag {
+    display: inline-block;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-weight: 600;
+    will-change: transform, opacity;
+  }
+
+  .section-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--white);
+    margin: 0;
+    line-height: 1.1;
+    font-weight: 700;
+    text-transform: uppercase;
+    will-change: transform, opacity;
+  }
+
+  /* Process Steps Container */
   .process-steps {
     position: relative;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
-    margin: 5rem 0;
-    padding-top: 2rem;
+    margin: 5rem 0 3rem;
+    padding-top: 3rem;
+    list-style: none;
+    padding-left: 0;
   }
 
-  .process-line {
+  /* Progress Line Track */
+  .process-line-track {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    transform-origin: left;
+    height: 2px;
+    background: rgba(120, 203, 205, 0.15);
+    border-radius: 1px;
   }
 
+  .process-line-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), rgba(120, 203, 205, 0.7));
+    border-radius: 1px;
+    will-change: transform;
+    box-shadow: 0 0 15px rgba(120, 203, 205, 0.5);
+  }
+
+  /* Individual Step */
   .process-step {
     position: relative;
-    padding-top: 2rem;
+    padding-top: 2.5rem;
+    will-change: opacity;
+    cursor: default;
+  }
+
+  .step-marker-wrapper {
+    position: absolute;
+    top: -22px;
+    left: 0;
   }
 
   .step-marker {
-    position: absolute;
-    top: -20px;
-    left: 0;
-    width: 40px;
-    height: 40px;
+    position: relative;
+    width: 44px;
+    height: 44px;
     background: var(--bg-color);
-    border: 1px solid var(--primary-color);
+    border: 2px solid var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
-    box-shadow: 0 0 20px rgba(120, 203, 205, 0.2);
+    will-change: transform, opacity;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .process-step.is-active .step-marker {
+    box-shadow: 0 0 25px rgba(120, 203, 205, 0.4);
+  }
+
+  .marker-ring {
+    position: absolute;
+    inset: -4px;
+    border: 1px solid var(--primary-color);
+    border-radius: 50%;
+    opacity: 0.3;
+  }
+
+  .marker-pulse {
+    position: absolute;
+    inset: 0;
+    background: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    will-change: transform, opacity;
   }
 
   .step-number {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--primary-color);
+    z-index: 1;
+    transition: color 0.3s ease;
   }
 
-  .process-step::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 20px;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(to bottom, var(--primary-color), transparent);
-    opacity: 0.2;
+  .process-step.is-active .step-number {
+    color: var(--white);
+  }
+
+  .process-step.is-active .step-marker {
+    background: var(--primary-color);
+  }
+
+  /* Step Content */
+  .step-content {
+    position: relative;
+    will-change: transform, opacity;
+    padding-right: 1rem;
   }
 
   .step-title {
@@ -148,85 +368,109 @@ const { data } = Astro.props;
     color: var(--white);
     margin: 0 0 1rem;
     font-weight: 600;
+    transition: color 0.3s ease;
+  }
+
+  .process-step.is-active .step-title {
+    color: var(--primary-color);
   }
 
   .step-description {
     font-size: 0.95rem;
     color: var(--text-muted);
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0;
+    transition: color 0.3s ease;
   }
 
-  .method-cta {
+  .process-step.is-active .step-description {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Check Indicator */
+  .step-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
     display: flex;
-    justify-content: center;
-    margin-top: 3rem;
-  }
-
-  .btn-primary {
-    display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
-    background: var(--primary-color);
-    color: var(--black);
-    border-radius: 2px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    justify-content: center;
+    will-change: transform, opacity;
   }
 
-  .btn-primary:hover {
-    background: var(--white);
-    transform: translateY(-2px);
+  .check-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--primary-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
-  .btn-icon {
-    display: flex;
-    transition: transform 0.3s ease;
+  /* Vertical line from marker on mobile */
+  .process-step::before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: 21px;
+    width: 2px;
+    height: calc(100% + 2rem);
+    background: linear-gradient(to bottom, rgba(120, 203, 205, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
-  .btn-primary:hover .btn-icon {
-    transform: translateX(4px);
-  }
-
-  @media (max-width: 900px) {
+  /* Responsive Styles */
+  @media (max-width: 1024px) {
     .process-steps {
       grid-template-columns: repeat(2, 1fr);
-      gap: 3rem 2rem;
+      gap: 3rem 3rem;
+      padding-top: 0;
     }
-    
-    .process-line {
-      display: none; 
+
+    .process-line-track {
+      display: none;
+    }
+
+    .step-marker-wrapper {
+      position: relative;
+      top: 0;
+      margin-bottom: 1.5rem;
     }
 
     .process-step {
       padding-top: 0;
-      padding-left: 3.5rem;
-    }
-
-    .step-marker {
-      top: 0;
-      left: 0;
     }
 
     .process-step::before {
-      top: 40px;
-      left: 20px;
-      height: calc(100% + 3rem);
+      opacity: 0.5;
+      top: 44px;
+      left: 21px;
+      height: calc(100% + 1.5rem);
     }
-    
+
     .process-step:nth-last-child(-n+2)::before {
       display: none;
     }
   }
 
-  @media (max-width: 500px) {
+  @media (max-width: 600px) {
+    .working-method {
+      padding: 5rem 0;
+    }
+
     .process-steps {
       grid-template-columns: 1fr;
       gap: 2.5rem;
+    }
+
+    .section-header-wrapper {
+      margin-bottom: 3rem;
+    }
+
+    .process-step::before {
+      opacity: 0.5;
     }
 
     .process-step:nth-last-child(2)::before {
@@ -235,6 +479,43 @@ const { data } = Astro.props;
 
     .process-step:last-child::before {
       display: none;
+    }
+
+    .step-marker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .step-marker {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .step-content {
+      padding-left: 0;
+    }
+
+    .step-indicator {
+      display: none;
+    }
+  }
+
+  /* Reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .process-line-fill,
+    .step-marker,
+    .step-content,
+    .marker-pulse {
+      will-change: auto;
+      transition: none;
     }
   }
 </style>
