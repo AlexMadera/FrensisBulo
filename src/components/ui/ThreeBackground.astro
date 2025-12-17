@@ -3,21 +3,44 @@
 <script>
   import * as THREE from 'three';
 
-  // Configuration
-  const PARTICLE_COUNT = 100;
-  const CONNECTION_DISTANCE = 150;
-  const MOUSE_DISTANCE = 200;
-  const PRIMARY_COLOR = 0x78cbcd; // Matches CSS var(--primary-color)
+  // ============================================
+  // MASSAGE THERAPY THEMED THREE.JS BACKGROUND
+  // Features: Flowing energy ribbons, healing particles,
+  // organic waves, and spa-like ambient atmosphere
+  // ============================================
 
-  // Setup Scene
+  // Configuration - Massage Therapy Theme
+  const CONFIG = {
+    // Colors - Soft, calming spa palette
+    primaryColor: 0x78cbcd,      // Teal - main brand color
+    secondaryColor: 0x5ab5b7,    // Darker teal
+    accentColor: 0xffd4a3,       // Warm amber - like candle light
+    healingColor: 0xa8e6cf,      // Soft mint green - healing energy
+
+    // Particles - Ambient spa atmosphere
+    particleCount: 80,
+    particleSize: 3,
+    particleOpacity: 0.6,
+
+    // Flow ribbons - Representing massage strokes
+    ribbonCount: 5,
+    ribbonSegments: 100,
+
+    // Animation
+    flowSpeed: 0.0008,
+    breatheSpeed: 0.4,
+    mouseInfluence: 0.15,
+  };
+
+  // Setup
   const container = document.getElementById('canvas-container');
   if (!container) throw new Error('Canvas container not found');
 
   const scene = new THREE.Scene();
-  
+
   // Camera
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.z = 400;
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+  camera.position.z = 500;
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -25,71 +48,443 @@
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
 
-  // Particles
-  const particlesGeometry = new THREE.BufferGeometry();
-  const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
-  const particleVelocities = [];
+  // ============================================
+  // AMBIENT HEALING PARTICLES
+  // Soft floating particles like spa aromatherapy
+  // ============================================
 
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const x = (Math.random() - 0.5) * 1000;
-    const y = (Math.random() - 0.5) * 1000;
-    const z = (Math.random() - 0.5) * 500;
+  class AmbientParticles {
+    particles: THREE.Points;
+    velocities: { x: number; y: number; z: number; phase: number }[];
 
-    particlePositions[i * 3] = x;
-    particlePositions[i * 3 + 1] = y;
-    particlePositions[i * 3 + 2] = z;
+    constructor() {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(CONFIG.particleCount * 3);
+      const colors = new Float32Array(CONFIG.particleCount * 3);
+      const sizes = new Float32Array(CONFIG.particleCount);
+      this.velocities = [];
 
-    particleVelocities.push({
-      x: (Math.random() - 0.5) * 0.5,
-      y: (Math.random() - 0.5) * 0.5,
-      z: (Math.random() - 0.5) * 0.2
-    });
+      const color1 = new THREE.Color(CONFIG.primaryColor);
+      const color2 = new THREE.Color(CONFIG.accentColor);
+      const color3 = new THREE.Color(CONFIG.healingColor);
+
+      for (let i = 0; i < CONFIG.particleCount; i++) {
+        // Spread particles in a dome-like distribution
+        const radius = 300 + Math.random() * 400;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI * 0.6; // Upper hemisphere bias
+
+        positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = radius * Math.cos(phi) - 100;
+        positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta) - 200;
+
+        // Color variation - mix of teal, amber, and mint
+        const colorChoice = Math.random();
+        let color;
+        if (colorChoice < 0.5) {
+          color = color1;
+        } else if (colorChoice < 0.8) {
+          color = color3;
+        } else {
+          color = color2;
+        }
+
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+
+        sizes[i] = CONFIG.particleSize + Math.random() * 2;
+
+        this.velocities.push({
+          x: (Math.random() - 0.5) * 0.3,
+          y: Math.random() * 0.2 + 0.1, // Gentle upward drift
+          z: (Math.random() - 0.5) * 0.3,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+          opacity: { value: CONFIG.particleOpacity }
+        },
+        vertexShader: `
+          attribute float size;
+          attribute vec3 color;
+          varying vec3 vColor;
+          varying float vAlpha;
+          uniform float time;
+
+          void main() {
+            vColor = color;
+            // Pulsing alpha based on position
+            vAlpha = 0.5 + 0.5 * sin(time * 0.5 + position.x * 0.01);
+
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (400.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+          }
+        `,
+        fragmentShader: `
+          uniform float opacity;
+          varying vec3 vColor;
+          varying float vAlpha;
+
+          void main() {
+            // Soft circular gradient
+            float dist = length(gl_PointCoord - vec2(0.5));
+            if (dist > 0.5) discard;
+
+            float alpha = smoothstep(0.5, 0.0, dist) * opacity * vAlpha;
+            gl_FragColor = vec4(vColor, alpha);
+          }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      this.particles = new THREE.Points(geometry, material);
+      scene.add(this.particles);
+    }
+
+    update(time: number) {
+      const positions = this.particles.geometry.attributes.position.array as Float32Array;
+      (this.particles.material as THREE.ShaderMaterial).uniforms.time.value = time;
+
+      for (let i = 0; i < CONFIG.particleCount; i++) {
+        const vel = this.velocities[i];
+
+        // Gentle floating motion with sine waves
+        positions[i * 3] += vel.x + Math.sin(time + vel.phase) * 0.1;
+        positions[i * 3 + 1] += vel.y;
+        positions[i * 3 + 2] += vel.z + Math.cos(time + vel.phase) * 0.1;
+
+        // Reset particles that float too high
+        if (positions[i * 3 + 1] > 400) {
+          positions[i * 3 + 1] = -300;
+          positions[i * 3] = (Math.random() - 0.5) * 800;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 400 - 200;
+        }
+      }
+
+      this.particles.geometry.attributes.position.needsUpdate = true;
+    }
   }
 
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-  
-  // Material for particles
-  const particlesMaterial = new THREE.PointsMaterial({
-    color: PRIMARY_COLOR,
-    size: 4,
-    transparent: true,
-    opacity: 0.8,
-    sizeAttenuation: true
-  });
+  // ============================================
+  // FLOWING ENERGY RIBBONS
+  // Smooth curves representing massage strokes/healing energy
+  // ============================================
 
-  const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
-  scene.add(particleSystem);
+  class FlowingRibbon {
+    mesh: THREE.Mesh;
+    basePositions: Float32Array;
+    time: number;
+    offset: number;
+    speed: number;
+    amplitude: number;
 
-  // Lines
-  const lineMaterial = new THREE.LineBasicMaterial({
-    color: PRIMARY_COLOR,
-    transparent: true,
-    opacity: 0.15
-  });
+    constructor(yOffset: number, zOffset: number, colorHex: number, width: number = 2) {
+      this.time = 0;
+      this.offset = Math.random() * Math.PI * 2;
+      this.speed = 0.5 + Math.random() * 0.3;
+      this.amplitude = 30 + Math.random() * 20;
 
-  const linesGeometry = new THREE.BufferGeometry();
-  const lines = new THREE.LineSegments(linesGeometry, lineMaterial);
-  scene.add(lines);
+      // Create ribbon geometry using a tube-like approach
+      const segments = CONFIG.ribbonSegments;
+      const positions: number[] = [];
+      const indices: number[] = [];
+      const uvs: number[] = [];
 
-  // Mouse interaction
-  const mouse = new THREE.Vector2();
-  const target = new THREE.Vector2();
-  
-  // Raycaster for more accurate interaction if needed, but simple distance check is faster
-  
+      this.basePositions = new Float32Array(segments * 6);
+
+      for (let i = 0; i < segments; i++) {
+        const t = i / (segments - 1);
+        const x = (t - 0.5) * 1200;
+        const y = yOffset;
+        const z = zOffset;
+
+        // Store base positions
+        this.basePositions[i * 6] = x;
+        this.basePositions[i * 6 + 1] = y;
+        this.basePositions[i * 6 + 2] = z;
+        this.basePositions[i * 6 + 3] = x;
+        this.basePositions[i * 6 + 4] = y;
+        this.basePositions[i * 6 + 5] = z;
+
+        // Create two vertices per segment (top and bottom of ribbon)
+        positions.push(x, y - width, z);
+        positions.push(x, y + width, z);
+
+        uvs.push(t, 0);
+        uvs.push(t, 1);
+
+        // Create triangles
+        if (i < segments - 1) {
+          const base = i * 2;
+          indices.push(base, base + 1, base + 2);
+          indices.push(base + 1, base + 3, base + 2);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.setIndex(indices);
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          color: { value: new THREE.Color(colorHex) },
+          time: { value: 0 }
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          varying float vAlpha;
+
+          void main() {
+            vUv = uv;
+            // Fade out at edges
+            vAlpha = sin(uv.x * 3.14159);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 color;
+          uniform float time;
+          varying vec2 vUv;
+          varying float vAlpha;
+
+          void main() {
+            // Gradient across ribbon width
+            float edgeFade = 1.0 - abs(vUv.y - 0.5) * 2.0;
+            edgeFade = pow(edgeFade, 0.5);
+
+            // Flowing light effect
+            float flow = sin(vUv.x * 10.0 - time * 2.0) * 0.5 + 0.5;
+            float brightness = 0.3 + flow * 0.4;
+
+            float alpha = vAlpha * edgeFade * brightness * 0.5;
+            gl_FragColor = vec4(color * (1.0 + flow * 0.3), alpha);
+          }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      this.mesh = new THREE.Mesh(geometry, material);
+      scene.add(this.mesh);
+    }
+
+    update(time: number, mouseX: number, mouseY: number) {
+      this.time = time;
+      (this.mesh.material as THREE.ShaderMaterial).uniforms.time.value = time;
+
+      const positions = this.mesh.geometry.attributes.position.array as Float32Array;
+      const segments = CONFIG.ribbonSegments;
+
+      for (let i = 0; i < segments; i++) {
+        const t = i / (segments - 1);
+        const baseX = this.basePositions[i * 6];
+        const baseY = this.basePositions[i * 6 + 1];
+        const baseZ = this.basePositions[i * 6 + 2];
+
+        // Multiple wave frequencies for organic movement
+        const wave1 = Math.sin(t * 4 + time * this.speed + this.offset) * this.amplitude;
+        const wave2 = Math.sin(t * 2 - time * this.speed * 0.7 + this.offset) * this.amplitude * 0.5;
+        const wave3 = Math.cos(t * 6 + time * this.speed * 1.3) * this.amplitude * 0.3;
+
+        // Mouse influence
+        const mouseInfluenceX = mouseX * CONFIG.mouseInfluence * (1 - Math.abs(t - 0.5) * 2);
+        const mouseInfluenceY = mouseY * CONFIG.mouseInfluence * 0.5;
+
+        const newY = baseY + wave1 + wave2 + mouseInfluenceY;
+        const newZ = baseZ + wave3 + mouseInfluenceX;
+
+        // Update both vertices of the ribbon
+        positions[i * 6 + 1] = newY - 2;
+        positions[i * 6 + 2] = newZ;
+        positions[i * 6 + 4] = newY + 2;
+        positions[i * 6 + 5] = newZ;
+      }
+
+      this.mesh.geometry.attributes.position.needsUpdate = true;
+    }
+  }
+
+  // ============================================
+  // ORGANIC PULSING ORB
+  // Central element representing healing energy core
+  // ============================================
+
+  class HealingOrb {
+    mesh: THREE.Mesh;
+    glowMesh: THREE.Mesh;
+
+    constructor() {
+      // Main orb
+      const geometry = new THREE.IcosahedronGeometry(40, 4);
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+          color1: { value: new THREE.Color(CONFIG.primaryColor) },
+          color2: { value: new THREE.Color(CONFIG.healingColor) }
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          varying vec3 vPosition;
+          uniform float time;
+
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vPosition = position;
+
+            // Organic pulsing deformation
+            vec3 pos = position;
+            float noise = sin(position.x * 0.1 + time) *
+                         sin(position.y * 0.1 + time * 1.2) *
+                         sin(position.z * 0.1 + time * 0.8);
+            pos += normal * noise * 5.0;
+
+            // Breathing effect
+            float breathe = 1.0 + sin(time * 0.5) * 0.1;
+            pos *= breathe;
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float time;
+          uniform vec3 color1;
+          uniform vec3 color2;
+          varying vec3 vNormal;
+          varying vec3 vPosition;
+
+          void main() {
+            // Fresnel effect for edge glow
+            vec3 viewDir = normalize(cameraPosition - vPosition);
+            float fresnel = pow(1.0 - max(dot(vNormal, viewDir), 0.0), 2.0);
+
+            // Color gradient based on position
+            float gradient = sin(vPosition.y * 0.05 + time * 0.5) * 0.5 + 0.5;
+            vec3 color = mix(color1, color2, gradient);
+
+            // Add glow at edges
+            color += fresnel * color2 * 0.5;
+
+            float alpha = 0.6 + fresnel * 0.3;
+            gl_FragColor = vec4(color, alpha);
+          }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+
+      this.mesh = new THREE.Mesh(geometry, material);
+      this.mesh.position.set(0, 0, -100);
+      scene.add(this.mesh);
+
+      // Outer glow
+      const glowGeometry = new THREE.IcosahedronGeometry(55, 3);
+      const glowMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+          color: { value: new THREE.Color(CONFIG.primaryColor) }
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          uniform float time;
+
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+
+            vec3 pos = position;
+            float breathe = 1.0 + sin(time * 0.5) * 0.15;
+            pos *= breathe;
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 color;
+          uniform float time;
+          varying vec3 vNormal;
+
+          void main() {
+            float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+            float pulse = 0.5 + 0.5 * sin(time * 0.8);
+            gl_FragColor = vec4(color, intensity * 0.2 * pulse);
+          }
+        `,
+        transparent: true,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      this.glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+      this.glowMesh.position.copy(this.mesh.position);
+      scene.add(this.glowMesh);
+    }
+
+    update(time: number, mouseX: number, mouseY: number) {
+      (this.mesh.material as THREE.ShaderMaterial).uniforms.time.value = time;
+      (this.glowMesh.material as THREE.ShaderMaterial).uniforms.time.value = time;
+
+      // Gentle floating motion influenced by mouse
+      this.mesh.position.x = mouseX * 0.05;
+      this.mesh.position.y = Math.sin(time * 0.3) * 10 + mouseY * 0.03;
+      this.mesh.rotation.y = time * 0.1;
+      this.mesh.rotation.x = Math.sin(time * 0.2) * 0.1;
+
+      this.glowMesh.position.copy(this.mesh.position);
+      this.glowMesh.rotation.copy(this.mesh.rotation);
+    }
+  }
+
+  // ============================================
+  // INITIALIZE SCENE ELEMENTS
+  // ============================================
+
+  const ambientParticles = new AmbientParticles();
+  const healingOrb = new HealingOrb();
+
+  // Create flowing ribbons at different depths
+  const ribbons = [
+    new FlowingRibbon(-50, -150, CONFIG.primaryColor, 3),
+    new FlowingRibbon(30, -200, CONFIG.healingColor, 2),
+    new FlowingRibbon(-80, -100, CONFIG.secondaryColor, 2.5),
+    new FlowingRibbon(100, -250, CONFIG.accentColor, 1.5),
+    new FlowingRibbon(-120, -180, CONFIG.primaryColor, 2),
+  ];
+
+  // ============================================
+  // MOUSE INTERACTION
+  // ============================================
+
+  let mouseX = 0;
+  let mouseY = 0;
+  let targetMouseX = 0;
+  let targetMouseY = 0;
+
   function onMouseMove(event: MouseEvent) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    // Map mouse to world coordinates roughly at z=0
-    // Simple approximation for this effect
-    target.x = mouse.x * 300; 
-    target.y = mouse.y * 300;
+    targetMouseX = (event.clientX / window.innerWidth - 0.5) * 200;
+    targetMouseY = (event.clientY / window.innerHeight - 0.5) * 200;
   }
 
   window.addEventListener('mousemove', onMouseMove);
 
-  // Resize handler
+  // ============================================
+  // RESIZE HANDLER
+  // ============================================
+
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -98,94 +493,49 @@
 
   window.addEventListener('resize', onWindowResize);
 
-  // Animation Loop
+  // ============================================
+  // ANIMATION LOOP
+  // ============================================
+
+  let startTime = Date.now();
+
   function animate() {
     requestAnimationFrame(animate);
 
-    const positions = particleSystem.geometry.attributes.position.array as Float32Array;
-    
-    // Update particles
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      let x = positions[i * 3];
-      let y = positions[i * 3 + 1];
-      let z = positions[i * 3 + 2];
+    const time = (Date.now() - startTime) * 0.001;
 
-      // Add velocity
-      x += particleVelocities[i].x;
-      y += particleVelocities[i].y;
-      z += particleVelocities[i].z;
+    // Smooth mouse interpolation
+    mouseX += (targetMouseX - mouseX) * 0.05;
+    mouseY += (targetMouseY - mouseY) * 0.05;
 
-      // Mouse interaction (gentle attraction/repulsion)
-      // We'll do a gentle float towards mouse for a "living" feel
-      // Or subtle repulsion to make it interactive
-      
-      /* 
-      // Optional: Mouse Influence
-      const dx = x - target.x;
-      const dy = y - target.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+    // Update all elements
+    ambientParticles.update(time);
+    healingOrb.update(time, mouseX, mouseY);
+    ribbons.forEach(ribbon => ribbon.update(time, mouseX, mouseY));
 
-      if (dist < MOUSE_DISTANCE) {
-        const force = (MOUSE_DISTANCE - dist) / MOUSE_DISTANCE;
-        x += dx * force * 0.05;
-        y += dy * force * 0.05;
-      }
-      */
+    // Subtle camera movement for depth
+    camera.position.x = mouseX * 0.02;
+    camera.position.y = mouseY * 0.02;
+    camera.lookAt(0, 0, -100);
 
-      // Boundaries - bounce back
-      if (x > 600 || x < -600) particleVelocities[i].x = -particleVelocities[i].x;
-      if (y > 400 || y < -400) particleVelocities[i].y = -particleVelocities[i].y;
-      if (z > 250 || z < -250) particleVelocities[i].z = -particleVelocities[i].z;
-
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-    }
-
-    particleSystem.geometry.attributes.position.needsUpdate = true;
-
-    // Update Lines
-    const linePositions = [];
-    const pCount = PARTICLE_COUNT;
-
-    for (let i = 0; i < pCount; i++) {
-      for (let j = i + 1; j < pCount; j++) {
-        const x1 = positions[i * 3];
-        const y1 = positions[i * 3 + 1];
-        const z1 = positions[i * 3 + 2];
-
-        const x2 = positions[j * 3];
-        const y2 = positions[j * 3 + 1];
-        const z2 = positions[j * 3 + 2];
-
-        const dist = Math.sqrt(
-          (x1 - x2) ** 2 +
-          (y1 - y2) ** 2 +
-          (z1 - z2) ** 2
-        );
-
-        if (dist < CONNECTION_DISTANCE) {
-          linePositions.push(x1, y1, z1);
-          linePositions.push(x2, y2, z2);
-        }
-      }
-    }
-
-    linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-    
-    // Slow rotation of whole system
-    scene.rotation.y += 0.001;
-    scene.rotation.x += 0.0005;
-
-    // Breathing effect (Physio theme)
-    const time = Date.now() * 0.001;
-    const breathe = 1 + Math.sin(time * 0.5) * 0.05;
+    // Global breathing effect
+    const breathe = 1 + Math.sin(time * CONFIG.breatheSpeed) * 0.02;
     scene.scale.setScalar(breathe);
 
     renderer.render(scene, camera);
   }
 
   animate();
+
+  // ============================================
+  // CLEANUP (for page navigation in SPA)
+  // ============================================
+
+  document.addEventListener('astro:before-preparation', () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('resize', onWindowResize);
+    renderer.dispose();
+  });
 </script>
 
 <style>
@@ -196,7 +546,7 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-    pointer-events: none; /* Let clicks pass through */
+    pointer-events: none;
     overflow: hidden;
   }
 </style>

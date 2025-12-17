@@ -1,0 +1,16 @@
+{
+  "category": "Uncategorized",
+  "description": "Improve our Hero section to use proper background tree js more related to MassageTheraphy improving the sales and eye catchy of the website",
+  "steps": [],
+  "images": [],
+  "imagePaths": [],
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "medium",
+  "branchName": "master",
+  "priority": 2,
+  "status": "in_progress",
+  "id": "feature-1765961739162-wx0v0y8u1",
+  "startedAt": "2025-12-17T08:55:43.851Z",
+  "updatedAt": "2025-12-17T08:55:43.991Z"
+}

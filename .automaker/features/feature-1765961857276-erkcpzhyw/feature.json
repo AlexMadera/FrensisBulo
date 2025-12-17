@@ -1,0 +1,17 @@
+{
+  "category": "Uncategorized",
+  "description": "Push code to remote https://github.com/AlexMadera/FrensisBulo.git and make sure it is there. the main branch \n\n",
+  "steps": [],
+  "images": [],
+  "imagePaths": [],
+  "skipTests": true,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "branchName": "master",
+  "priority": 1,
+  "status": "waiting_approval",
+  "id": "feature-1765961857276-erkcpzhyw",
+  "startedAt": "2025-12-17T08:57:39.309Z",
+  "updatedAt": "2025-12-17T09:00:17.952Z",
+  "justFinishedAt": "2025-12-17T09:00:17.952Z"
+}
