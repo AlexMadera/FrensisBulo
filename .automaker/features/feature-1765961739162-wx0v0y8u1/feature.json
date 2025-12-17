@@ -3,14 +3,21 @@
   "description": "Improve our Hero section to use proper background tree js more related to MassageTheraphy improving the sales and eye catchy of the website",
   "steps": [],
   "images": [],
-  "imagePaths": [],
+  "imagePaths": [
+    {
+      "path": "D:\\AMCoding\\FrensisBulo\\.automaker\\features\\feature-1765961739162-wx0v0y8u1\\images\\image_3-1765962860901.jpg",
+      "filename": "image_3-1765962860901.jpg",
+      "mimeType": "image/png"
+    }
+  ],
   "skipTests": false,
   "model": "opus",
   "thinkingLevel": "medium",
   "branchName": "master",
   "priority": 2,
-  "status": "in_progress",
+  "status": "waiting_approval",
   "id": "feature-1765961739162-wx0v0y8u1",
-  "startedAt": "2025-12-17T08:55:43.851Z",
-  "updatedAt": "2025-12-17T08:55:43.991Z"
+  "startedAt": "2025-12-17T09:03:41.855Z",
+  "updatedAt": "2025-12-17T09:18:24.513Z",
+  "justFinishedAt": "2025-12-17T09:18:24.513Z"
 }

@@ -10,15 +10,16 @@ interface Props {
 const { data } = Astro.props;
 ---
 
-<section id="home" class="hero">
-  <div class="hero-bg">
+<section id="home" class="hero" aria-labelledby="hero-title" itemscope itemtype="https://schema.org/WPHeader">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-image"></div>
     <ThreeBackground />
     <div class="gradient-overlay"></div>
   </div>
-  
+
   <Container class="hero-container">
-    <div class="hero-content">
-      <h1 class="hero-title">
+    <header class="hero-content" itemprop="mainContentOfPage">
+      <h1 id="hero-title" class="hero-title" itemprop="headline">
         <span class="title-line">
           <span class="title-word">Massagetherapie</span>
         </span>
@@ -26,35 +27,36 @@ const { data } = Astro.props;
           <span class="title-word text-gradient">Frensis Bulo</span>
         </span>
       </h1>
-      
-      <p class="hero-tagline">{data.tagline}</p>
-      
-      <div class="hero-cta">
-        <a href="#contact" class="btn-primary">
+
+      <p class="hero-tagline" itemprop="description">{data.tagline}</p>
+
+      <nav class="hero-cta" aria-label="Primary actions">
+        <a href="#contact" class="btn-primary" role="button" aria-describedby="cta-description">
           <span class="btn-text">Book Now</span>
-          <span class="btn-icon">
+          <span class="btn-icon" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </span>
         </a>
-      </div>
+        <span id="cta-description" class="sr-only">Schedule your massage therapy session with Frensis Bulo</span>
+      </nav>
 
-      <div class="hero-stats">
+      <aside class="hero-stats" aria-label="Professional achievements" itemscope itemtype="https://schema.org/AggregateRating">
         <div class="stat-item">
-          <span class="stat-number">10+</span>
+          <span class="stat-number" itemprop="ratingCount">10+</span>
           <span class="stat-label">Years Experience</span>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
           <span class="stat-number">1000+</span>
           <span class="stat-label">Happy Clients</span>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-          <span class="stat-number">5.0</span>
-          <span class="stat-label">Rating</span>
+          <span class="stat-number" itemprop="ratingValue">5.0</span>
+          <span class="stat-label" itemprop="bestRating">Rating</span>
         </div>
-      </div>
-    </div>
+      </aside>
+    </header>
   </Container>
 </section>
 
@@ -64,10 +66,14 @@ const { data } = Astro.props;
 
   gsap.registerPlugin(ScrollTrigger);
 
-  const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+  // Hero entrance animation timeline
+  const heroTl = gsap.timeline({
+    defaults: { ease: 'power4.out' },
+    delay: 0.2 // Small delay for Three.js to initialize
+  });
 
   heroTl
-    .fromTo('.title-word', 
+    .fromTo('.title-word',
       { y: 100, opacity: 0, rotateX: -30 },
       { y: 0, opacity: 1, rotateX: 0, duration: 1, stagger: 0.15 }
     )
@@ -77,21 +83,22 @@ const { data } = Astro.props;
       '-=0.5'
     )
     .fromTo('.hero-cta a',
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
+      { opacity: 0, y: 20, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1 },
       '-=0.4'
     )
     .fromTo('.stat-item',
       { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.4, stagger: 0.08 },
-      '-=0.2'
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
+      '-=0.3'
     )
     .fromTo('.stat-divider',
       { scaleY: 0, opacity: 0 },
-      { scaleY: 1, opacity: 1, duration: 0.3, stagger: 0.08 },
-      '-=0.3'
+      { scaleY: 1, opacity: 1, duration: 0.4, stagger: 0.1 },
+      '-=0.4'
     );
 
+  // Parallax scroll effect
   gsap.to('.hero-content', {
     scrollTrigger: {
       trigger: '.hero',
@@ -99,9 +106,22 @@ const { data } = Astro.props;
       end: 'bottom top',
       scrub: 1,
     },
-    y: 80,
-    opacity: 0.3,
+    y: 100,
+    opacity: 0.2,
   });
+
+  // Background parallax with GSAP
+  gsap.to('#canvas-container', {
+    scrollTrigger: {
+      trigger: '.hero',
+      start: 'top top',
+      end: 'bottom top',
+      scrub: 1.5,
+    },
+    y: 150,
+    scale: 1.1,
+  });
+
 </script>
 
 <style>
@@ -114,6 +134,13 @@ const { data } = Astro.props;
     justify-content: center;
     overflow: hidden;
     padding: 6rem 0 4rem;
+    /* Brighter base background for professional look */
+    background: linear-gradient(
+      180deg,
+      rgba(20, 30, 32, 1) 0%,
+      rgba(14, 20, 22, 1) 50%,
+      rgba(14, 14, 14, 1) 100%
+    );
   }
 
   .hero-bg {
@@ -122,13 +149,41 @@ const { data } = Astro.props;
     z-index: 0;
   }
 
+  .hero-image {
+    position: absolute;
+    inset: 0;
+    background-image: url('/hero-massage-bg.jpg');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    opacity: 0.2;
+    z-index: 0;
+    filter: grayscale(20%) contrast(1.05);
+  }
+
   .gradient-overlay {
     position: absolute;
     inset: 0;
+    /* Brighter, more open gradient to showcase the positive background */
     background:
-      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(14, 14, 14, 0.2) 0%, rgba(14, 14, 14, 0.6) 50%, rgba(14, 14, 14, 0.92) 100%),
-      radial-gradient(circle at 30% 70%, rgba(120, 203, 205, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(168, 230, 207, 0.03) 0%, transparent 40%);
+      /* Central opening - bright and airy */
+      radial-gradient(ellipse 100% 80% at 50% 45%,
+        rgba(120, 203, 205, 0.08) 0%,
+        rgba(120, 203, 205, 0.03) 30%,
+        transparent 60%),
+      /* Soft vignette - lighter than before */
+      radial-gradient(ellipse 90% 70% at 50% 50%,
+        transparent 0%,
+        rgba(14, 20, 22, 0.3) 50%,
+        rgba(14, 14, 14, 0.7) 100%),
+      /* Top highlight for brightness */
+      radial-gradient(ellipse 80% 40% at 50% 0%,
+        rgba(165, 225, 227, 0.1) 0%,
+        transparent 60%),
+      /* Bottom fade */
+      linear-gradient(to top,
+        rgba(14, 14, 14, 0.9) 0%,
+        transparent 30%);
     pointer-events: none;
     z-index: 1;
   }
@@ -164,6 +219,8 @@ const { data } = Astro.props;
   .title-word {
     display: block;
     transform-origin: center center;
+    /* Add text shadow for better visibility on bright background */
+    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
   }
 
   .hero-tagline {
@@ -172,6 +229,8 @@ const { data } = Astro.props;
     color: var(--text-muted);
     line-height: 1.7;
     margin: 0;
+    /* Subtle text shadow for readability */
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
   }
 
   .hero-cta {
@@ -193,12 +252,18 @@ const { data } = Astro.props;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Enhanced glow effect */
+    box-shadow:
+      0 4px 20px rgba(120, 203, 205, 0.3),
+      0 0 40px rgba(120, 203, 205, 0.1);
   }
 
   .btn-primary:hover {
     background: var(--white);
     transform: translateY(-2px);
-    box-shadow: 0 10px 40px rgba(120, 203, 205, 0.3);
+    box-shadow:
+      0 10px 40px rgba(120, 203, 205, 0.4),
+      0 0 60px rgba(120, 203, 205, 0.2);
   }
 
   .btn-primary:hover .btn-icon {
@@ -218,7 +283,7 @@ const { data } = Astro.props;
     gap: 2rem;
     margin-top: 2rem;
     padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(120, 203, 205, 0.15);
   }
 
   .stat-item {
@@ -233,6 +298,8 @@ const { data } = Astro.props;
     font-weight: 700;
     color: var(--white);
     line-height: 1;
+    /* Subtle glow on numbers */
+    text-shadow: 0 0 20px rgba(120, 203, 205, 0.3);
   }
 
   .stat-label {
@@ -245,7 +312,12 @@ const { data } = Astro.props;
   .stat-divider {
     width: 1px;
     height: 35px;
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(120, 203, 205, 0.3),
+      transparent
+    );
     transform-origin: center;
   }
 
