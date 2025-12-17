@@ -29,6 +29,7 @@ export interface PriceItem {
   price: string;
   duration: string;
   features: string[];
+  buttonText: string;
 }
 
 export interface Testimonial {
@@ -286,6 +287,7 @@ export const content: Record<Language, SiteContent> = {
             'Cupping Massage',
             'Stretching',
           ],
+          buttonText: 'Book Now',
         },
         {
           title: 'Introduction',
@@ -296,6 +298,7 @@ export const content: Record<Language, SiteContent> = {
             'Ambulatory in between €10-15 extra',
             'Group offer possible',
           ],
+          buttonText: 'Contact',
         },
         {
           title: 'Weightloss Program',
@@ -307,6 +310,7 @@ export const content: Record<Language, SiteContent> = {
             'Advice & Information',
             'TLC products including Iaso tea',
           ],
+          buttonText: 'Contact',
         },
       ],
     },
@@ -415,6 +419,7 @@ export const content: Record<Language, SiteContent> = {
             'Cupping Massage',
             'Rekken & Strekken',
           ],
+          buttonText: 'Boek Nu',
         },
         {
           title: 'Introductie',
@@ -425,6 +430,7 @@ export const content: Record<Language, SiteContent> = {
             'Ambulant tussen €10-15 extra',
             'Groepsofferte mogelijk',
           ],
+          buttonText: 'Contact',
         },
         {
           title: 'Weightloss Programma',
@@ -436,6 +442,7 @@ export const content: Record<Language, SiteContent> = {
             'Advies & Informatie',
             'TLC producten inclusief Iaso tea',
           ],
+          buttonText: 'Contact',
         },
       ],
     },
@@ -544,6 +551,7 @@ export const content: Record<Language, SiteContent> = {
             'Cupping Massage',
             'Stretch',
           ],
+          buttonText: 'Reserva Awor',
         },
         {
           title: 'Introdukshon',
@@ -554,6 +562,7 @@ export const content: Record<Language, SiteContent> = {
             'Ambulante entre €10-15 èkstra',
             'Oferta den grupo posibel',
           ],
+          buttonText: 'Kontakto',
         },
         {
           title: 'Programa pa baha peso',
@@ -565,6 +574,7 @@ export const content: Record<Language, SiteContent> = {
             'Konseho i Informashon',
             'Produktonan TLC inkluí Iaso tea',
           ],
+          buttonText: 'Kontakto',
         },
       ],
     },
@@ -673,6 +683,7 @@ export const content: Record<Language, SiteContent> = {
             'Masaje con Ventosas',
             'Estiramiento',
           ],
+          buttonText: 'Reservar Ahora',
         },
         {
           title: 'Introducción',
@@ -683,6 +694,7 @@ export const content: Record<Language, SiteContent> = {
             'Ambulatorio entre €10-15 extra',
             'Oferta grupal posible',
           ],
+          buttonText: 'Contacto',
         },
         {
           title: 'Programa de Pérdida de Peso',
@@ -694,6 +706,7 @@ export const content: Record<Language, SiteContent> = {
             'Consejo e Información',
             'Productos TLC incluyendo té Iaso',
           ],
+          buttonText: 'Contacto',
         },
       ],
     },
